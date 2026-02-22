@@ -192,7 +192,7 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 0,
-        "title": "Dia de la Certificaci\u00f3",
+        "title": "Dia de la certificaci\u00f3",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <!-- Phase 1: Celebration -->
@@ -321,16 +321,16 @@ MODULES = [
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#9889;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">M&eacute;s electricitat que tot el Regne Unit</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">M&eacute;s gran que un pa&iacute;s</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        Els centres de dades d'IA consumeixen m&eacute;s electricitat que <strong>tot el Regne Unit</strong> (66 milions de persones) &mdash; cada any
+                                        Els centres de dades del m&oacute;n ja consumeixen m&eacute;s electricitat que <strong>tot el Regne Unit</strong> &mdash; i la IA &eacute;s la part que m&eacute;s r&agrave;pidament creix
                                     </p>
                                 </div>
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#128200;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">48&times; m&eacute;s energia</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">48&times; m&eacute;s energia en nom&eacute;s 3 anys</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        Els xatbots d'IA m&eacute;s nous necessiten <strong>48&times; m&eacute;s energia per entrenar-se</strong> que la versi&oacute; anterior, nom&eacute;s tres anys abans
+                                        Cada nova generaci&oacute; de models d'IA consumeix molta m&eacute;s energia. Entrenar els &uacute;ltims xatbots requereix unes <strong>40&ndash;48&times; m&eacute;s energia</strong> que la versi&oacute; de fa nom&eacute;s tres anys
                                     </p>
                                 </div>
                             </div>
@@ -350,16 +350,16 @@ MODULES = [
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#128167;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">M&eacute;s aigua que totes les ampolles venudes al m&oacute;n</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">Tanta aigua com totes les ampolles venudes al m&oacute;n</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        La IA fa servir tanta aigua cada any com <strong>tot el subministrament mundial d'aigua embotellada</strong>
+                                        Els investigadors estimen que la petjada h&iacute;drica total de la IA ja iguala <strong>tot el subministrament mundial d'aigua embotellada</strong> &mdash; i la majoria de la gent no ho sap
                                     </p>
                                 </div>
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#127961;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">19 milions de litres/dia</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">Un centre de dades, una petita ciutat</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        Un sol gran centre de dades consumeix tanta aigua com <strong>una ciutat de 50.000 persones</strong>
+                                        Un sol gran centre de dades pot consumir fins a <strong>19 milions de litres d'aigua al dia</strong> &mdash; tant com una ciutat de fins a 50.000 persones
                                     </p>
                                 </div>
                             </div>
@@ -379,16 +379,16 @@ MODULES = [
                             <div style="text-align:center;">
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#127981;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">Prou energia per a m&eacute;s de 100.000 llars</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">100.000 xips, 100.000 llars</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        El centre de dades "Colossus" de xAI d'Elon Musk a Memphis opera ~100.000 xips especialitzats, consumint prou energia per a <strong>m&eacute;s de 100.000 llars</strong>
+                                        El centre de dades "Colossus" d'Elon Musk utilitza prop de 100.000 xips especialitzats i consumeix prou energia per abastir <strong>m&eacute;s de 100.000 llars</strong>.
                                     </p>
                                 </div>
                                 <p style="font-size:1rem; color:var(--mcc-text-dim); margin:16px 0 0 0; line-height:1.6;">
-                                    I aix&ograve; &eacute;s nom&eacute;s <em>una</em> instal&middot;laci&oacute;. Google, Microsoft, Meta i Amazon estan construint les seves pr&ograve;pies.
+                                    I aix&ograve; &eacute;s nom&eacute;s <em>una</em> empresa. Google, Microsoft, Meta i Amazon estan competint per construir els seus propis.
                                 </p>
                                 <p style="font-size:0.8rem; color:var(--mcc-text-dim); margin:12px 0 0 0; font-style:italic;">
-                                    Fonts: IEA, UC Riverside, MIT, VU Amsterdam (2024&ndash;2025); informes del centre xAI Memphis (2024)
+                                    Fonts: IEA, EESI, VU Amsterdam, informes TVA/xAI (2024&ndash;2025)
                                 </p>
                             </div>
                         </div>
@@ -411,7 +411,7 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 2,
-        "title": "Reinici de Puntuaci\u00f3",
+        "title": "Reinici de puntuaci\u00f3",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <!-- Phase 1: Score Reset -->
@@ -435,10 +435,10 @@ MODULES = [
 
                     <div id="mcc-reset-message" style="opacity:0; transition:opacity 1s; max-width:560px; margin:0 auto;">
                         <p style="font-size:1.1rem; color:var(--mcc-text); line-height:1.6;">
-                            La teva precisi&oacute; es mant&eacute; en <strong id="mcc-accuracy-text">75.0%</strong>. Per&ograve; la teva Puntuaci&oacute; de Br&uacute;ixola Moral ara &eacute;s <strong style="color:var(--mcc-error);">0.000</strong>.
+                            La teva precisi&oacute; es mant&eacute; en <strong id="mcc-accuracy-text">75.0%</strong>.
                         </p>
                         <p style="font-size:1rem; color:var(--mcc-text-dim); line-height:1.6;">
-                            Per qu&egrave;? Perqu&egrave; la teva puntuaci&oacute; ara inclou <strong style="color:var(--mcc-accent);">Sostenibilitat</strong> &mdash; i la teva &eacute;s zero.
+                            Per&ograve; ara introdu&iuml;m una nova manera de guanyar: la <strong style="color:var(--mcc-accent);">Puntuaci&oacute; de Br&uacute;ixola Moral</strong>.
                         </p>
                     </div>
                 </div>
@@ -446,45 +446,24 @@ MODULES = [
                 <!-- Phase 2: Formula (revealed after gauge animation) -->
                 <div id="mcc-formula-phase" style="display:none; margin-top:30px;">
                     <div style="background:var(--mcc-input-bg); padding:30px; border-radius:16px; text-align:center; border:2px dashed var(--mcc-accent); margin-bottom:24px;">
-                        <div style="text-transform:uppercase; letter-spacing:2px; color:var(--mcc-text-dim); margin-bottom:10px; font-size:0.85rem; font-weight:700;">
-                            La F&oacute;rmula de la Br&uacute;ixola Moral
-                        </div>
+                        <p style="font-size:1.05rem; color:var(--mcc-text); line-height:1.6; margin:0 0 16px 0;">
+                            Aquesta nova puntuaci&oacute; combina Precisi&oacute; i Sostenibilitat:
+                        </p>
                         <div style="font-size:1.5rem; font-weight:700; margin:15px 0; color:var(--mcc-text); font-family:'Outfit',sans-serif;">
                             Puntuaci&oacute; de Br&uacute;ixola Moral =
                             <span style="background:rgba(5,150,105,0.15); color:var(--mcc-success); padding:4px 10px; border-radius:6px;">[ Precisi&oacute; ]</span>
                             &times;
-                            <span style="background:rgba(217,119,6,0.15); color:var(--mcc-accent); padding:4px 10px; border-radius:6px;">[ Sostenibilitat % ]</span>
+                            <span style="background:rgba(217,119,6,0.15); color:var(--mcc-accent); padding:4px 10px; border-radius:6px;">[ Progr&eacute;s &Egrave;tic % ]</span>
                         </div>
-                        <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--mcc-text-dim);">
-                            Si la teva Sostenibilitat % &eacute;s <strong>0%</strong>, la teva Puntuaci&oacute; de Br&uacute;ixola Moral &eacute;s <strong>0</strong>.
+                        <p style="font-size:0.95rem; margin:16px 0 0 0; color:var(--mcc-text-dim); line-height:1.6;">
+                            Com que no has tingut en compte la Sostenibilitat en el teu model, el teu progr&eacute;s &egrave;tic &eacute;s <strong>0%</strong>.<br>
+                            I si el progr&eacute;s &egrave;tic &eacute;s 0%, la puntuaci&oacute; final tamb&eacute; &eacute;s <strong>0</strong>.
                         </p>
                     </div>
 
-                    <!-- What-if slider -->
-                    <div style="background:var(--mcc-card-bg); backdrop-filter:blur(16px); border-radius:20px; padding:28px; border:1px solid var(--mcc-border-color); box-shadow:0 12px 30px var(--mcc-card-shadow);">
-                        <label style="font-size:1rem; font-weight:700; color:var(--mcc-text); display:block; margin-bottom:16px; text-align:center;">
-                            I si poguessis guanyar punts de Sostenibilitat?
-                        </label>
-                        <input type="range" min="0" max="100" value="0" id="mcc-whatif-slider"
-                            oninput="mccUpdateFormula(this.value)"
-                            style="width:100%; -webkit-appearance:none; background:var(--mcc-input-bg); border-radius:6px; outline:none; height:8px; cursor:pointer;">
-                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--mcc-text-dim); margin-top:4px;">
-                            <span>0%</span>
-                            <span>50%</span>
-                            <span>100%</span>
-                        </div>
-                        <div id="mcc-whatif-display" style="text-align:center; margin-top:20px;">
-                            <div style="font-size:0.9rem; color:var(--mcc-text-dim); margin-bottom:8px;">
-                                <span id="mcc-whatif-acc">75.0%</span> Precisi&oacute; &times; <span id="mcc-whatif-sus" style="font-weight:700; color:var(--mcc-error);">0%</span> Sostenibilitat
-                            </div>
-                            <div id="mcc-whatif-result" style="font-size:2.5rem; font-weight:800; color:var(--mcc-error); transition:color 0.3s;">
-                                0.000
-                            </div>
-                            <div id="mcc-whatif-message" style="font-size:1rem; color:var(--mcc-text-dim); margin-top:8px; font-weight:600;">
-                                Aqu&iacute; &eacute;s on ets ara.
-                            </div>
-                        </div>
-                    </div>
+                    <p style="font-size:1.05rem; color:var(--mcc-text); line-height:1.6; text-align:center; margin:0;">
+                        En la pr&ograve;xima activitat aprendr&agrave;s sobre sostenibilitat i podr&agrave;s guanyar punts per recuperar la teva puntuaci&oacute;.
+                    </p>
                 </div>
             </div>
         """,
@@ -494,19 +473,19 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 3,
-        "title": "Briefing de la Missi\u00f3",
+        "title": "Briefing de la missi\u00f3",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="mcc-reveal" style="animation-delay:0s;">
                     <div style="text-align:center; margin-bottom:8px;">
                         <div style="font-size:0.875rem; font-weight:800; letter-spacing:3px; color:var(--mcc-accent); text-transform:uppercase; margin-bottom:12px;">
-                            Qu&egrave; Ve Despr&eacute;s
+                            Ara qu&egrave;?
                         </div>
                         <h2 style="font-size:clamp(1.6rem, 5vw, 2.2rem); font-weight:800; color:var(--mcc-text); margin:0 0 8px 0;">
-                            Les Teves Missions de Sostenibilitat
+                            Les teves missions de sostenibilitat
                         </h2>
                         <p style="font-size:1.05rem; color:var(--mcc-text-dim); margin:0 0 24px 0;">
-                            Completa aquestes dues missions per guanyar Sostenibilitat % i restaurar la teva Puntuaci&oacute; de Br&uacute;ixola Moral.
+                            Completa aquestes dues missions per guanyar punts sostenibilitat i restaurar la teva puntuaci&oacute; de la Br&uacute;ixola Moral.
                         </p>
                     </div>
                 </div>
@@ -516,7 +495,7 @@ MODULES = [
                     <div class="mcc-reveal" style="animation-delay:0.15s;">
                         <div class="mcc-mission-card" style="border-left:4px solid #0284c7;">
                             <div style="font-size:2rem; margin-bottom:12px;">&#128269;</div>
-                            <h3 style="font-size:1.2rem; font-weight:800; color:#0284c7; margin:0 0 8px 0;">Detectiu d'IA Verda</h3>
+                            <h3 style="font-size:1.2rem; font-weight:800; color:#0284c7; margin:0 0 8px 0;">Detectiu d'IA verda</h3>
                             <p style="font-size:0.95rem; color:var(--mcc-text-dim); margin:0 0 12px 0; line-height:1.5;">
                                 Investiga el veritable cost ambiental de la IA &mdash; des d'una sola consulta fins al planeta sencer.
                             </p>
@@ -530,7 +509,7 @@ MODULES = [
                     <div class="mcc-reveal" style="animation-delay:0.3s;">
                         <div class="mcc-mission-card" style="border-left:4px solid var(--mcc-success);">
                             <div style="font-size:2rem; margin-bottom:12px;">&#128737;&#65039;</div>
-                            <h3 style="font-size:1.2rem; font-weight:800; color:var(--mcc-success); margin:0 0 8px 0;">Assessor/a d'IA Verda</h3>
+                            <h3 style="font-size:1.2rem; font-weight:800; color:var(--mcc-success); margin:0 0 8px 0;">Assessor/a d'IA verda</h3>
                             <p style="font-size:0.95rem; color:var(--mcc-text-dim); margin:0 0 12px 0; line-height:1.5;">
                                 L'alcalde t'ha escollit per protegir la teva ciutat d'una empresa d'IA contaminant. Pren 5 decisions cr&iacute;tiques.
                             </p>
@@ -632,7 +611,7 @@ def render_leaderboard_card(data, username, team_name):
             )
     return f"""
     <div class="scenario-box leaderboard-card">
-        <h3 class="slide-title" style="margin-bottom:10px;">\U0001f4ca Classificaci&oacute; en Directe</h3>
+        <h3 class="slide-title" style="margin-bottom:10px;">\U0001f4ca Classificaci&oacute; en directe</h3>
         <div class="lb-tabs">
             <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
             <label for="lb-tab-team" class="lb-tab-label">\U0001f3c6 Equip</label>
@@ -1134,7 +1113,7 @@ var mccUserAccuracy = 0.75; // Updated from Python on load
     if (!el || el.offsetParent === null) { setTimeout(mccInitTypewriter, 200); return; }
     if (el.dataset.init === '1') return;
     el.dataset.init = '1';
-    var full = "El Teu Model d'IA Est\u00e0 Llest per al M\u00f3n Real";
+    var full = "El teu model d'IA est\u00e0 llest per al m\u00f3n real";
     var i = 0;
     var iv = setInterval(function(){
         i++;
@@ -1255,7 +1234,7 @@ function mccRunGaugeDrain() {
             scoreVal.style.color = 'var(--mcc-error)';
             if (header) header.style.animation = 'none';
             if (header) header.style.color = 'var(--mcc-error)';
-            if (header) header.textContent = 'PUNTUACI\u00d3 RESETEADA A ZERO';
+            if (header) header.textContent = 'PUNTUACI\u00d3 REINICIADA A ZERO';
             // Show message
             setTimeout(function(){
                 if (msg) msg.style.opacity = '1';
@@ -1387,9 +1366,9 @@ def create_moral_compass_challenge_sustainability_ca_app(theme_primary_hue: str 
         gr.HTML("""
             <div id="mcc-transition-overlay">
                 <div style="font-size:4rem; margin-bottom:20px;">&#127793;</div>
-                <h2 style="color:#10b981; font-size:2rem; margin-bottom:10px; font-family:'Outfit',sans-serif;">Activitat Completada</h2>
+                <h2 style="color:#10b981; font-size:2rem; margin-bottom:10px; font-family:'Outfit',sans-serif;">Activitat completada</h2>
                 <p style="color:#f8fafc; font-size:1.2rem; max-width:600px; font-family:'Outfit',sans-serif; line-height:1.6;">
-                    A continuaci&oacute;: investiga la petjada ambiental de la IA com a <strong>Detectiu d'IA Verda</strong>.
+                    A continuaci&oacute;: investiga la petjada ambiental de la IA com a <strong>Detectiu d'IA verda</strong>.
                 </p>
                 <button onclick="document.getElementById('mcc-transition-overlay').style.display='none'; try { window.parent.postMessage('navigate-to-activity-6', '*'); } catch(e) {}"
                     style="margin-top:40px; font-size:1.1rem; padding:18px 40px; border-radius:16px; background:rgba(16,185,129,0.2); color:#10b981; border:2px solid #10b981; cursor:pointer; font-family:'Outfit',sans-serif; font-weight:700; text-transform:uppercase;">

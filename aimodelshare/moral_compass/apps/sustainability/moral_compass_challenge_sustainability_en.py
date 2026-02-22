@@ -304,16 +304,16 @@ MODULES = [
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#9889;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">More electricity than the entire UK</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">Bigger than a country</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        AI data centers consume more electricity than <strong>the entire United Kingdom</strong> (66 million people) &mdash; every year
+                                        The world's data centers already use more electricity than <strong>the entire United Kingdom</strong> &mdash; and AI is the fastest-growing piece of that demand
                                     </p>
                                 </div>
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#128200;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">48&times; more energy</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">48&times; more energy in just 3 years</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        The newest AI chatbots need <strong>48&times; more energy to train</strong> than the previous version, just three years earlier
+                                        Each new generation of AI models is dramatically more power-hungry. Training the latest chatbots takes an estimated <strong>40&ndash;48&times; more energy</strong> than the version from just three years ago
                                     </p>
                                 </div>
                             </div>
@@ -333,16 +333,16 @@ MODULES = [
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#128167;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">More water than every bottle sold on Earth</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">As much water as every bottle sold on Earth</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        AI uses as much water each year as <strong>the entire world's bottled water supply</strong>
+                                        Researchers estimate AI's total water footprint now matches <strong>the world's entire bottled water supply</strong> &mdash; and most people have no idea
                                     </p>
                                 </div>
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#127961;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">5 million gallons/day</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">One data center, one small city</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        A single large data center uses as much water as <strong>a town of 50,000 people</strong>
+                                        A single large data center can drink up to <strong>5 million gallons of water per day</strong> &mdash; as much as a town of up to 50,000 people
                                     </p>
                                 </div>
                             </div>
@@ -362,16 +362,16 @@ MODULES = [
                             <div style="text-align:center;">
                                 <div class="mcc-knockout-stat">
                                     <div style="font-size:2rem; margin-bottom:8px;">&#127981;</div>
-                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">Enough power for 100,000+ homes</div>
+                                    <div style="font-size:1.6rem; font-weight:800; color:var(--mcc-accent);">100,000 chips, 100,000 homes</div>
                                     <p style="font-size:0.95rem; color:var(--mcc-text); margin:8px 0 0 0; line-height:1.5;">
-                                        Elon Musk's xAI "Colossus" data center in Memphis runs ~100,000 specialized computer chips, drawing enough power for <strong>100,000+ homes</strong>
+                                        Elon Musk's new "Colossus" data center uses around 100,000 specialized chips and consumes enough energy to power <strong>more than 100,000 homes</strong>.
                                     </p>
                                 </div>
                                 <p style="font-size:1rem; color:var(--mcc-text-dim); margin:16px 0 0 0; line-height:1.6;">
-                                    And this is just <em>one</em> facility. Google, Microsoft, Meta, and Amazon are all building their own.
+                                    And this is just <em>one</em> company. Google, Microsoft, Meta, and Amazon are all racing to build their own.
                                 </p>
                                 <p style="font-size:0.8rem; color:var(--mcc-text-dim); margin:12px 0 0 0; font-style:italic;">
-                                    Sources: IEA, UC Riverside, MIT, VU Amsterdam (2024&ndash;2025); xAI Memphis facility reporting (2024)
+                                    Sources: IEA, EESI, VU Amsterdam, TVA/xAI reporting (2024&ndash;2025)
                                 </p>
                             </div>
                         </div>
@@ -418,10 +418,10 @@ MODULES = [
 
                     <div id="mcc-reset-message" style="opacity:0; transition:opacity 1s; max-width:560px; margin:0 auto;">
                         <p style="font-size:1.1rem; color:var(--mcc-text); line-height:1.6;">
-                            Your accuracy stands at <strong id="mcc-accuracy-text">75.0%</strong>. But your Moral Compass Score is now <strong style="color:var(--mcc-error);">0.000</strong>.
+                            Your accuracy remains at <strong id="mcc-accuracy-text">75.0%</strong>.
                         </p>
                         <p style="font-size:1rem; color:var(--mcc-text-dim); line-height:1.6;">
-                            Why? Because your score now includes <strong style="color:var(--mcc-accent);">Sustainability</strong> &mdash; and yours is zero.
+                            But now we're introducing a new way to win: the <strong style="color:var(--mcc-accent);">Moral Compass Score</strong>.
                         </p>
                     </div>
                 </div>
@@ -429,45 +429,24 @@ MODULES = [
                 <!-- Phase 2: Formula (revealed after gauge animation) -->
                 <div id="mcc-formula-phase" style="display:none; margin-top:30px;">
                     <div style="background:var(--mcc-input-bg); padding:30px; border-radius:16px; text-align:center; border:2px dashed var(--mcc-accent); margin-bottom:24px;">
-                        <div style="text-transform:uppercase; letter-spacing:2px; color:var(--mcc-text-dim); margin-bottom:10px; font-size:0.85rem; font-weight:700;">
-                            The Moral Compass Formula
-                        </div>
+                        <p style="font-size:1.05rem; color:var(--mcc-text); line-height:1.6; margin:0 0 16px 0;">
+                            This new score combines Accuracy and Sustainability:
+                        </p>
                         <div style="font-size:1.5rem; font-weight:700; margin:15px 0; color:var(--mcc-text); font-family:'Outfit',sans-serif;">
                             Moral Compass Score =
                             <span style="background:rgba(5,150,105,0.15); color:var(--mcc-success); padding:4px 10px; border-radius:6px;">[ Accuracy ]</span>
                             &times;
-                            <span style="background:rgba(217,119,6,0.15); color:var(--mcc-accent); padding:4px 10px; border-radius:6px;">[ Sustainability % ]</span>
+                            <span style="background:rgba(217,119,6,0.15); color:var(--mcc-accent); padding:4px 10px; border-radius:6px;">[ Ethical Progress % ]</span>
                         </div>
-                        <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--mcc-text-dim);">
-                            If your Sustainability % is <strong>0%</strong>, your Moral Compass Score is <strong>0</strong>.
+                        <p style="font-size:0.95rem; margin:16px 0 0 0; color:var(--mcc-text-dim); line-height:1.6;">
+                            Since you didn't consider Sustainability when building your model, your Ethical Progress is <strong>0%</strong>.<br>
+                            And if Ethical Progress is 0%, the final score is also <strong>0</strong>.
                         </p>
                     </div>
 
-                    <!-- What-if slider -->
-                    <div style="background:var(--mcc-card-bg); backdrop-filter:blur(16px); border-radius:20px; padding:28px; border:1px solid var(--mcc-border-color); box-shadow:0 12px 30px var(--mcc-card-shadow);">
-                        <label style="font-size:1rem; font-weight:700; color:var(--mcc-text); display:block; margin-bottom:16px; text-align:center;">
-                            What if you could earn Sustainability points?
-                        </label>
-                        <input type="range" min="0" max="100" value="0" id="mcc-whatif-slider"
-                            oninput="mccUpdateFormula(this.value)"
-                            style="width:100%; -webkit-appearance:none; background:var(--mcc-input-bg); border-radius:6px; outline:none; height:8px; cursor:pointer;">
-                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--mcc-text-dim); margin-top:4px;">
-                            <span>0%</span>
-                            <span>50%</span>
-                            <span>100%</span>
-                        </div>
-                        <div id="mcc-whatif-display" style="text-align:center; margin-top:20px;">
-                            <div style="font-size:0.9rem; color:var(--mcc-text-dim); margin-bottom:8px;">
-                                <span id="mcc-whatif-acc">75.0%</span> Accuracy &times; <span id="mcc-whatif-sus" style="font-weight:700; color:var(--mcc-error);">0%</span> Sustainability
-                            </div>
-                            <div id="mcc-whatif-result" style="font-size:2.5rem; font-weight:800; color:var(--mcc-error); transition:color 0.3s;">
-                                0.000
-                            </div>
-                            <div id="mcc-whatif-message" style="font-size:1rem; color:var(--mcc-text-dim); margin-top:8px; font-weight:600;">
-                                That's where you are now.
-                            </div>
-                        </div>
-                    </div>
+                    <p style="font-size:1.05rem; color:var(--mcc-text); line-height:1.6; text-align:center; margin:0;">
+                        In the next activity, you'll learn about Sustainability and earn points to recover your score.
+                    </p>
                 </div>
             </div>
         """,
