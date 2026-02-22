@@ -108,7 +108,7 @@ def fetch_user_history(username, token):
 # Page 1: Round 1 — Cooling Crisis — quiz t12
 # Page 2: Round 2 — Power Source Reckoning — quiz t13
 # Page 3: Round 3 — Model Efficiency Overhaul — quiz t14
-# Page 4: Round 4 — Location Decision — quiz t15
+# Page 4: Round 4 — The Bigger Picture — quiz t15
 # Page 5: Round 5 — Transparency Report — quiz t16
 # Page 6: Results — quiz t17
 # ============================================================================
@@ -323,21 +323,21 @@ MODULES = [
         ),
     },
     # ─────────────────────────────────────────────
-    # MODULE 4 — ROUND 4: LOCATION DECISION
+    # MODULE 4 — ROUND 4: THE BIGGER PICTURE
     # ─────────────────────────────────────────────
     {
         "id": 4,
-        "title": "Ronda 4: Ubicaci\u00f3n, Ubicaci\u00f3n, Ubicaci\u00f3n",
+        "title": "Ronda 4: La Visi\u00f3n Global",
         "html": _round_html(
             round_idx=4,
             emoji="\U0001f4cd",
-            title="Ubicaci\u00f3n, Ubicaci\u00f3n, Ubicaci\u00f3n",
-            brief="NovaMind quiere construir en un desierto caluroso porque el terreno es barato. Pero el calor del desierto significa que los ordenadores necesitan MUCHA m\u00e1s refrigeraci\u00f3n. Y la red el\u00e9ctrica local funciona principalmente con gas.",
-            question="\u00bfD\u00f3nde deber\u00eda construir NovaMind?",
+            title="La Visi\u00f3n Global",
+            brief="Antes de aprobar la construcci\u00f3n de NovaMind en tu ciudad, pides ver su plan de expansi\u00f3n global. D\u00f3nde una empresa pone sus OTROS centros de datos te dice todo sobre si se toman en serio la sostenibilidad &mdash; o solo le dicen a tu ciudad lo que quiere o\u00edr.",
+            question="\u00bfNovaMind tiene planes para 3 centros de datos m\u00e1s. D\u00f3nde los van a construir?",
             choices=[
-                {"icon": "\U0001f1f8\U0001f1ea", "label": "Construir en la Fr\u00eda Escandinavia", "desc": "Suecia y Finlandia son heladas &mdash; la naturaleza enfr\u00eda los ordenadores gratis. Adem\u00e1s, el 95% de la electricidad all\u00ed ya es limpia."},
-                {"icon": "\U0001f332", "label": "Construir en la Lluviosa Oreg\u00f3n", "desc": "El clima suave significa menos refrigeraci\u00f3n necesaria. Mucha energ\u00eda hidroel\u00e9ctrica de los r\u00edos. Otras grandes empresas tecnol\u00f3gicas ya est\u00e1n all\u00ed."},
-                {"icon": "\U0001f3dc\ufe0f", "label": "Quedarse en el Desierto Caluroso", "desc": "El terreno es super barato. Pero hace un calor abrasador y la red el\u00e9ctrica quema gas."},
+                {"icon": "\U0001f30d", "label": "Ubicaciones fr\u00edas y limpias", "desc": "Sus pr\u00f3ximas 3 construcciones son en Islandia, Suecia y Quebec &mdash; todos con climas helados y m\u00e1s del 90% de energ\u00eda limpia. Claramente est\u00e1n comprometidos con la sostenibilidad en todas partes, no solo aqu\u00ed."},
+                {"icon": "\u2696\ufe0f", "label": "Una estrategia mixta", "desc": "Uno en Oreg\u00f3n (energ\u00eda hidroel\u00e9ctrica), uno en Texas (barato pero red el\u00e9ctrica sucia), uno en Irlanda (fresco pero red sobrecargada). Una mezcla &mdash; algo de esfuerzo, algunos atajos."},
+                {"icon": "\U0001f3dc\ufe0f", "label": "Donde el terreno sea m\u00e1s barato", "desc": "Los 3 est\u00e1n en regiones calurosas y baratas con redes de combustibles f\u00f3siles &mdash; Arizona, Arabia Saud\u00ed e India. Est\u00e1n optimizando para el beneficio, no para el planeta. Tu ciudad podr\u00eda ser solo una jugada de marketing."},
             ],
         ),
     },
@@ -419,14 +419,14 @@ QUIZ_CONFIG = {
     },
     4: {
         "t": "t8",
-        "q": "Alguien dice: *\u2018\u00a1El terreno del desierto es barato \u2014 nos ahorraremos millones!\u2019* \u00bfQu\u00e9 est\u00e1n olvidando?",
+        "q": "NovaMind te muestra su plan de expansi\u00f3n global. Sus 3 nuevos centros de datos est\u00e1n en regiones calurosas y baratas con redes de combustibles f\u00f3siles. Un directivo dice: *\u2018\u00a1Nos ahorramos millones en costes de terreno!\u2019* \u00bfCu\u00e1l es el verdadero problema?",
         "o": [
-            "A) Los desiertos est\u00e1n bien si usas energ\u00eda limpia \u2014 el calor no importa realmente con buena refrigeraci\u00f3n.",
-            "B) El calor extremo significa 3 veces m\u00e1s costes de refrigeraci\u00f3n, la red de gas anula tu progreso verde, y no hay suficiente agua \u2014 ahorrar dinero ahora causa problemas m\u00e1s grandes despu\u00e9s.",
-            "C) El \u00fanico problema es la mala prensa \u2014 los costes reales son m\u00e1s o menos iguales que construir en un lugar fr\u00edo.",
+            "A) Las ubicaciones calurosas est\u00e1n bien siempre que NovaMind compre compensaciones de carbono para equilibrar la refrigeraci\u00f3n extra y la energ\u00eda sucia.",
+            "B) El terreno barato esconde costes enormes \u2014 3 veces m\u00e1s refrigeraci\u00f3n, redes de gas que anulan el progreso verde, y escasez de agua. Si recortan gastos en todas partes, las promesas que hicieron a tu ciudad probablemente son solo marketing.",
+            "C) El \u00fanico problema real es la imagen p\u00fablica \u2014 el impacto ambiental real es m\u00e1s o menos el mismo independientemente de la ubicaci\u00f3n.",
         ],
-        "a": "B) El calor extremo significa 3 veces m\u00e1s costes de refrigeraci\u00f3n, la red de gas anula tu progreso verde, y no hay suficiente agua \u2014 ahorrar dinero ahora causa problemas m\u00e1s grandes despu\u00e9s.",
-        "success": "<strong>\u00a1Inteligencia de Ubicaci\u00f3n!</strong> Meta y Google eligieron lugares fr\u00edos exactamente por esta raz\u00f3n \u2014 refrigeraci\u00f3n gratis + energ\u00eda limpia = m\u00e1s barato al final.",
+        "a": "B) El terreno barato esconde costes enormes \u2014 3 veces m\u00e1s refrigeraci\u00f3n, redes de gas que anulan el progreso verde, y escasez de agua. Si recortan gastos en todas partes, las promesas que hicieron a tu ciudad probablemente son solo marketing.",
+        "success": "<strong>\u00a1Patr\u00f3n Detectado!</strong> D\u00f3nde una empresa construye sus OTROS centros de datos revela sus verdaderas prioridades. Meta y Google eligieron Escandinavia por una raz\u00f3n \u2014 refrigeraci\u00f3n gratis + redes limpias.",
     },
     5: {
         "t": "t9",
@@ -1207,17 +1207,17 @@ window.CTO_ROUNDS = [
           fb:"Guardar respuestas ayuda un poco, pero la mayor\\u00eda de las preguntas son \\u00fanicas \\u2014 el modelo m\\u00e1s grande sigue funcionando casi siempre. Es como poner una tirita peque\\u00f1a en un problema grande.", tier:"poor" },
       ],
     },
-    { id:"location", title:"Ubicaci\\u00f3n, Ubicaci\\u00f3n, Ubicaci\\u00f3n", emoji:"\\ud83d\\udccd",
+    { id:"expansion", title:"La Visi\\u00f3n Global", emoji:"\\ud83d\\udccd",
       choices:[
-        { id:"a", label:"Construir en la Fr\\u00eda Escandinavia", icon:"\\ud83c\\uddf8\\ud83c\\uddea",
+        { id:"a", label:"Ubicaciones Fr\\u00edas y Limpias", icon:"\\ud83c\\udf0d",
           fx:{energy:-20,water:-40,co2:-30,cost:-18,greenScore:20,reputation:18},
-          fb:"\\u00a1Esto es lo que Meta y Google hicieron de verdad! El aire helado enfr\\u00eda los ordenadores gratis. Casi toda la electricidad es limpia. \\u00a1Elecci\\u00f3n brillante!", tier:"best" },
-        { id:"b", label:"Construir en la Lluviosa Oreg\\u00f3n", icon:"\\ud83c\\udf32",
+          fb:"\\u00a1NovaMind cumple lo que promete! Empresas como Meta y Google construyen en Escandinavia porque el aire helado = refrigeraci\\u00f3n gratis y redes limpias. Esta empresa va en serio.", tier:"best" },
+        { id:"b", label:"Una Estrategia Mixta", icon:"\\u2696\\ufe0f",
           fx:{energy:-10,water:-20,co2:-18,cost:-10,greenScore:12,reputation:10},
-          fb:"\\u00a1Buena elecci\\u00f3n! Amazon y Google ya tienen grandes edificios all\\u00ed. Los r\\u00edos proporcionan energ\\u00eda hidroel\\u00e9ctrica limpia, y el clima suave significa menos refrigeraci\\u00f3n.", tier:"good" },
-        { id:"c", label:"Quedarse en el Desierto Caluroso", icon:"\\ud83c\\udfdc\\ufe0f",
+          fb:"No est\\u00e1 mal, pero tampoco est\\u00e1 genial. Oreg\\u00f3n es inteligente, pero Texas e Irlanda levantan banderas rojas. Irlanda prohibi\\u00f3 nuevos centros de datos en 2022 porque amenazaban el 18% de su red el\\u00e9ctrica.", tier:"good" },
+        { id:"c", label:"Donde el Terreno Sea M\\u00e1s Barato", icon:"\\ud83c\\udfdc\\ufe0f",
           fx:{energy:5,water:10,co2:5,cost:5,greenScore:-3,reputation:-10},
-          fb:"El terreno barato suena genial, pero el calor abrasador significa 3 veces m\\u00e1s costes de refrigeraci\\u00f3n. La red de gas anula tus avances anteriores. NovaMind acaba en una lista de \\u2018peores contaminadores\\u2019.", tier:"poor" },
+          fb:"Bandera roja. Si NovaMind construye en todas partes donde es barato y sucio, las promesas de sostenibilidad que hicieron a TU ciudad probablemente son solo marketing. El patr\\u00f3n revela la verdad.", tier:"poor" },
       ],
     },
     { id:"transparency", title:"Control de Honestidad", emoji:"\\ud83d\\udcca",
@@ -1504,7 +1504,7 @@ function ctoRenderResults() {
     // Audit trail
     var tc2 = {best:"var(--cto-success)", good:"var(--cto-warning)", poor:"var(--cto-error)"};
     var tl2 = {best:"Mejor", good:"Buena", poor:"Pobre"};
-    var roundNames = [null, "Refrigeraci\\u00f3n", "Fuente de Energ\\u00eda", "Eficiencia de IA", "Ubicaci\\u00f3n", "Transparencia"];
+    var roundNames = [null, "Refrigeraci\\u00f3n", "Fuente de Energ\\u00eda", "Eficiencia de IA", "Plan Global", "Transparencia"];
     var roundEmojis = [null, "\\ud83c\\udf21\\ufe0f", "\\u26a1", "\\ud83e\\udde0", "\\ud83d\\udccd", "\\ud83d\\udcca"];
     var auditHtml = '';
     for (var ai = 0; ai < choices.length; ai++) {

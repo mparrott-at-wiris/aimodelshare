@@ -108,7 +108,7 @@ def fetch_user_history(username, token):
 # Page 1: Round 1 — Cooling Crisis — quiz t12
 # Page 2: Round 2 — Power Source Reckoning — quiz t13
 # Page 3: Round 3 — Model Efficiency Overhaul — quiz t14
-# Page 4: Round 4 — Location Decision — quiz t15
+# Page 4: Round 4 — The Bigger Picture — quiz t15
 # Page 5: Round 5 — Transparency Report — quiz t16
 # Page 6: Results — quiz t17
 # ============================================================================
@@ -323,21 +323,21 @@ MODULES = [
         ),
     },
     # ─────────────────────────────────────────────
-    # MODULE 4 — ROUND 4: LOCATION DECISION
+    # MODULE 4 — ROUND 4: THE BIGGER PICTURE
     # ─────────────────────────────────────────────
     {
         "id": 4,
-        "title": "Ronda 4: Ubicaci\u00f3, Ubicaci\u00f3, Ubicaci\u00f3",
+        "title": "Ronda 4: La Visi\u00f3 Global",
         "html": _round_html(
             round_idx=4,
             emoji="\U0001f4cd",
-            title="Ubicaci\u00f3, Ubicaci\u00f3, Ubicaci\u00f3",
-            brief="NovaMind vol construir en un desert calor\u00f3s perqu\u00e8 el terreny \u00e9s barat. Per\u00f2 la calor del desert significa que els ordinadors necessiten MOLTA m\u00e9s refrigeraci\u00f3. I la xarxa el\u00e8ctrica local funciona principalment amb gas.",
-            question="On hauria de construir NovaMind?",
+            title="La Visi\u00f3 Global",
+            brief="Abans d&#39;aprovar la construcci\u00f3 de NovaMind a la teva ciutat, demanes veure el seu pla d&#39;expansi\u00f3 global. On una empresa posa els seus ALTRES centres de dades et diu tot sobre si es prenen seriosament la sostenibilitat &mdash; o nom\u00e9s li diuen a la teva ciutat el que vol sentir.",
+            question="NovaMind t\u00e9 plans per a 3 centres de dades m\u00e9s. On els construiran?",
             choices=[
-                {"icon": "\U0001f1f8\U0001f1ea", "label": "Construir a la Freda Escandin\u00e0via", "desc": "Su\u00e8cia i Finl\u00e0ndia s\u00f3n gelades &mdash; la natura refreda els ordinadors gratis. A m\u00e9s, el 95% de l&#39;electricitat all\u00e0 ja \u00e9s neta."},
-                {"icon": "\U0001f332", "label": "Construir a la Plujosa Oregon", "desc": "El clima suau significa menys refrigeraci\u00f3 necess\u00e0ria. Molta energia hidroel\u00e8ctrica dels rius. Altres grans empreses tecnol\u00f2giques ja hi s\u00f3n."},
-                {"icon": "\U0001f3dc\ufe0f", "label": "Quedar-se al Desert Calor\u00f3s", "desc": "El terreny \u00e9s super barat. Per\u00f2 fa una calor abrasadora i la xarxa el\u00e8ctrica crema gas."},
+                {"icon": "\U0001f30d", "label": "Ubicacions fredes i netes", "desc": "Les seves 3 properes construccions s\u00f3n a Isl\u00e0ndia, Su\u00e8cia i Quebec &mdash; tots amb climes gla\u00e7ats i m\u00e9s del 90% d&#39;energia neta. Clarament estan compromesos amb la sostenibilitat a tot arreu, no nom\u00e9s aqu\u00ed."},
+                {"icon": "\u2696\ufe0f", "label": "Una estrat\u00e8gia mixta", "desc": "Un a Oregon (energia hidroel\u00e8ctrica), un a Texas (barat per\u00f2 xarxa el\u00e8ctrica bruta), un a Irlanda (fresc per\u00f2 xarxa sobrecarregada). Una barreja &mdash; una mica d&#39;esfor\u00e7, alguns dreceres."},
+                {"icon": "\U0001f3dc\ufe0f", "label": "On el terreny sigui m\u00e9s barat", "desc": "Els 3 s\u00f3n en regions caloroses i barates amb xarxes de combustibles f\u00f2ssils &mdash; Arizona, Ar\u00e0bia Saudita i \u00cdndia. Estan optimitzant per al benefici, no per al planeta. La teva ciutat podria ser nom\u00e9s una jugada de m\u00e0rqueting."},
             ],
         ),
     },
@@ -419,14 +419,14 @@ QUIZ_CONFIG = {
     },
     4: {
         "t": "t8",
-        "q": "Alg\u00fa diu: *\u2018El terreny del desert \u00e9s barat \u2014 ens estalviarem milions!\u2019* Qu\u00e8 estan oblidant?",
+        "q": "NovaMind et mostra el seu pla d\u2019expansi\u00f3 global. Els seus 3 nous centres de dades s\u00f3n en regions caloroses i barates amb xarxes de combustibles f\u00f2ssils. Un directiu diu: *\u2018Ens estalviem milions en costos de terreny!\u2019* Quin \u00e9s el veritable problema?",
         "o": [
-            "A) Els deserts estan b\u00e9 si fas servir energia neta \u2014 la calor no importa realment amb bona refrigeraci\u00f3.",
-            "B) La calor extrema significa 3 vegades m\u00e9s costos de refrigeraci\u00f3, la xarxa de gas anul\u00b7la el teu progr\u00e9s verd, i no hi ha prou aigua \u2014 estalviar diners ara causa problemes m\u00e9s grans despr\u00e9s.",
-            "C) L\u2019\u00fanic problema \u00e9s la mala premsa \u2014 els costos reals s\u00f3n m\u00e9s o menys iguals que construir en un lloc fred.",
+            "A) Les ubicacions caloroses estan b\u00e9 sempre que NovaMind compri compensacions de carboni per equilibrar la refrigeraci\u00f3 extra i l\u2019energia bruta.",
+            "B) El terreny barat amaga costos enormes \u2014 3 vegades m\u00e9s refrigeraci\u00f3, xarxes de gas que anul\u00b7len el progr\u00e9s verd, i escassetat d\u2019aigua. Si retallen despeses a tot arreu, les promeses que van fer a la teva ciutat probablement s\u00f3n nom\u00e9s m\u00e0rqueting.",
+            "C) L\u2019\u00fanic problema real \u00e9s la imatge p\u00fablica \u2014 l\u2019impacte ambiental real \u00e9s m\u00e9s o menys el mateix independentment de la ubicaci\u00f3.",
         ],
-        "a": "B) La calor extrema significa 3 vegades m\u00e9s costos de refrigeraci\u00f3, la xarxa de gas anul\u00b7la el teu progr\u00e9s verd, i no hi ha prou aigua \u2014 estalviar diners ara causa problemes m\u00e9s grans despr\u00e9s.",
-        "success": "<strong>Intel\u00b7lig\u00e8ncia d\u2019Ubicaci\u00f3!</strong> Meta i Google van triar llocs freds exactament per aquesta ra\u00f3 \u2014 refrigeraci\u00f3 gratis + energia neta = m\u00e9s barat al final.",
+        "a": "B) El terreny barat amaga costos enormes \u2014 3 vegades m\u00e9s refrigeraci\u00f3, xarxes de gas que anul\u00b7len el progr\u00e9s verd, i escassetat d\u2019aigua. Si retallen despeses a tot arreu, les promeses que van fer a la teva ciutat probablement s\u00f3n nom\u00e9s m\u00e0rqueting.",
+        "success": "<strong>Patr\u00f3 Detectat!</strong> On una empresa construeix els seus ALTRES centres de dades revela les seves veritables prioritats. Meta i Google van triar Escandin\u00e0via per una ra\u00f3 \u2014 refrigeraci\u00f3 gratis + xarxes netes.",
     },
     5: {
         "t": "t9",
@@ -1207,17 +1207,17 @@ window.CTO_ROUNDS = [
           fb:"Guardar respostes ajuda una mica, per\\u00f2 la majoria de preguntes s\\u00f3n \\u00faniques \\u2014 el model m\\u00e9s gran segueix funcionant gaireb\\u00e9 sempre. \\u00c9s com posar una tireta petita en un problema gran.", tier:"poor" },
       ],
     },
-    { id:"location", title:"Ubicaci\\u00f3, Ubicaci\\u00f3, Ubicaci\\u00f3", emoji:"\\ud83d\\udccd",
+    { id:"expansion", title:"La Visi\\u00f3 Global", emoji:"\\ud83d\\udccd",
       choices:[
-        { id:"a", label:"Construir a la Freda Escandin\\u00e0via", icon:"\\ud83c\\uddf8\\ud83c\\uddea",
+        { id:"a", label:"Ubicacions Fredes i Netes", icon:"\\ud83c\\udf0d",
           fx:{energy:-20,water:-40,co2:-30,cost:-18,greenScore:20,reputation:18},
-          fb:"Aix\\u00f2 \\u00e9s el que van fer Meta i Google realment! L\\u2019aire gelat refreda els ordinadors gratis. Gaireb\\u00e9 tota l\\u2019electricitat \\u00e9s neta. Elecci\\u00f3 brillant!", tier:"best" },
-        { id:"b", label:"Construir a la Plujosa Oregon", icon:"\\ud83c\\udf32",
+          fb:"NovaMind compleix el que promet! Empreses com Meta i Google construeixen a Escandin\\u00e0via perqu\\u00e8 l\\u2019aire gla\\u00e7at = refrigeraci\\u00f3 gratis i xarxes netes. Aquesta empresa va de deb\\u00f2.", tier:"best" },
+        { id:"b", label:"Una Estrat\\u00e8gia Mixta", icon:"\\u2696\\ufe0f",
           fx:{energy:-10,water:-20,co2:-18,cost:-10,greenScore:12,reputation:10},
-          fb:"Bona elecci\\u00f3! Amazon i Google ja tenen grans edificis all\\u00e0. Els rius proporcionen energia hidroel\\u00e8ctrica neta, i el clima suau significa menys refrigeraci\\u00f3 necess\\u00e0ria.", tier:"good" },
-        { id:"c", label:"Quedar-se al Desert Calor\\u00f3s", icon:"\\ud83c\\udfdc\\ufe0f",
+          fb:"No est\\u00e0 malament, per\\u00f2 tampoc est\\u00e0 genial. Oregon \\u00e9s intel\\u00b7ligent, per\\u00f2 Texas i Irlanda aixequen banderes vermelles. Irlanda va prohibir nous centres de dades el 2022 perqu\\u00e8 amena\\u00e7aven el 18% de la seva xarxa el\\u00e8ctrica.", tier:"good" },
+        { id:"c", label:"On el Terreny Sigui M\\u00e9s Barat", icon:"\\ud83c\\udfdc\\ufe0f",
           fx:{energy:5,water:10,co2:5,cost:5,greenScore:-3,reputation:-10},
-          fb:"El terreny barat sona genial, per\\u00f2 la calor abrasadora significa 3 vegades m\\u00e9s costos de refrigeraci\\u00f3. La xarxa de gas anul\\u00b7la els teus guanys anteriors. NovaMind apareix en una llista de \\u2018pitjors contaminadors\\u2019.", tier:"poor" },
+          fb:"Bandera vermella. Si NovaMind construeix a tot arreu on \\u00e9s barat i brut, les promeses de sostenibilitat que van fer a la TEVA ciutat probablement s\\u00f3n nom\\u00e9s m\\u00e0rqueting. El patr\\u00f3 revela la veritat.", tier:"poor" },
       ],
     },
     { id:"transparency", title:"Control d\\u2019Honestedat", emoji:"\\ud83d\\udcca",
@@ -1504,7 +1504,7 @@ function ctoRenderResults() {
     // Audit trail
     var tc2 = {best:"var(--cto-success)", good:"var(--cto-warning)", poor:"var(--cto-error)"};
     var tl2 = {best:"Millor", good:"Bona", poor:"Pobre"};
-    var roundNames = [null, "Refrigeraci\\u00f3", "Font d\\u2019Energia", "Efici\\u00e8ncia d\\u2019IA", "Ubicaci\\u00f3", "Transpar\\u00e8ncia"];
+    var roundNames = [null, "Refrigeraci\\u00f3", "Font d\\u2019Energia", "Efici\\u00e8ncia d\\u2019IA", "Pla Global", "Transpar\\u00e8ncia"];
     var roundEmojis = [null, "\\ud83c\\udf21\\ufe0f", "\\u26a1", "\\ud83e\\udde0", "\\ud83d\\udccd", "\\ud83d\\udcca"];
     var auditHtml = '';
     for (var ai = 0; ai < choices.length; ai++) {

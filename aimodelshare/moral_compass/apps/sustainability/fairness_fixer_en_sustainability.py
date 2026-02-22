@@ -91,7 +91,7 @@ def fetch_user_history(username, token):
 # Page 1: Round 1 — Cooling Crisis — quiz t12
 # Page 2: Round 2 — Where Does the Power Come From? — quiz t13
 # Page 3: Round 3 — Right-Sized AI — quiz t14
-# Page 4: Round 4 — Location Decision — quiz t15
+# Page 4: Round 4 — The Bigger Picture — quiz t15
 # Page 5: Round 5 — Honesty Check — quiz t16
 # Page 6: Results — quiz t17
 # ============================================================================
@@ -306,21 +306,21 @@ MODULES = [
         ),
     },
     # ─────────────────────────────────────────────
-    # MODULE 4 — ROUND 4: LOCATION DECISION
+    # MODULE 4 — ROUND 4: THE BIGGER PICTURE
     # ─────────────────────────────────────────────
     {
         "id": 4,
-        "title": "Round 4: Location Decision",
+        "title": "Round 4: The Bigger Picture",
         "html": _round_html(
             round_idx=4,
             emoji="\U0001f4cd",
-            title="Location, Location, Location",
-            brief="NovaMind wants to build in a hot desert because the land is cheap. But desert heat means the computers need WAY more cooling. And the local power grid runs mostly on gas.",
-            question="Where should NovaMind build?",
+            title="The Bigger Picture",
+            brief="Before you approve NovaMind&#39;s build in your city, you ask to see their global expansion plan. Where a company puts its OTHER data centers tells you everything about whether they&#39;re serious about sustainability &mdash; or just telling your city what it wants to hear.",
+            question="NovaMind has plans for 3 more data centers. Where are they building them?",
             choices=[
-                {"icon": "\U0001f1f8\U0001f1ea", "label": "Build in Cold Scandinavia", "desc": "Sweden and Finland are freezing cold &mdash; nature cools the computers for free. Plus, 95% of the electricity there is already clean."},
-                {"icon": "\U0001f332", "label": "Build in Rainy Oregon", "desc": "Mild weather means less cooling needed. Lots of hydropower from rivers. Other big tech companies are already there."},
-                {"icon": "\U0001f3dc\ufe0f", "label": "Stay in the Hot Desert", "desc": "The land is super cheap. But it&#39;s scorching hot and the power grid burns gas."},
+                {"icon": "\U0001f30d", "label": "Cold & Clean Locations", "desc": "Their next 3 builds are in Iceland, Sweden, and Quebec &mdash; all with freezing climates and 90%+ clean energy. They&#39;re clearly committed to sustainability everywhere, not just here."},
+                {"icon": "\u2696\ufe0f", "label": "A Mixed Strategy", "desc": "One in Oregon (hydropower), one in Texas (cheap but dirty grid), one in Ireland (cool but grid-stressed). A mixed bag &mdash; some effort, some shortcuts."},
+                {"icon": "\U0001f3dc\ufe0f", "label": "Wherever Land Is Cheapest", "desc": "All 3 are in hot, cheap regions with fossil-fuel grids &mdash; Arizona, Saudi Arabia, and India. They&#39;re optimizing for profit, not the planet. Your town might just be a PR move."},
             ],
         ),
     },
@@ -402,14 +402,14 @@ QUIZ_CONFIG = {
     },
     4: {
         "t": "t8",
-        "q": "Someone says: *\u2018Desert land is cheap \u2014 we\u2019ll save millions!\u2019* What are they forgetting?",
+        "q": "NovaMind shows you their global expansion plan. All 3 new data centers are in hot, cheap regions with fossil-fuel grids. A board member says: *\u2018We save millions on land costs!\u2019* What\u2019s the real problem?",
         "o": [
-            "A) Deserts are fine if you use clean energy \u2014 the heat doesn\u2019t really matter with good cooling.",
-            "B) Extreme heat means 3x more cooling costs, the gas grid cancels your green progress, and there\u2019s not enough water \u2014 saving money now causes bigger problems later.",
-            "C) The only issue is bad press \u2014 the actual costs are about the same as building in a cold place.",
+            "A) Hot locations are fine as long as NovaMind buys carbon offsets to balance out the extra cooling and dirty energy.",
+            "B) Cheap land hides massive costs \u2014 3x cooling, gas grids that cancel green progress, and water scarcity. If they cut corners everywhere else, the promises they made to your city are probably just PR.",
+            "C) The only real issue is public image \u2014 the actual environmental impact is about the same regardless of location.",
         ],
-        "a": "B) Extreme heat means 3x more cooling costs, the gas grid cancels your green progress, and there\u2019s not enough water \u2014 saving money now causes bigger problems later.",
-        "success": "<strong>Location Smarts!</strong> Meta and Google picked cold places for this exact reason \u2014 free cooling + clean energy = cheaper in the end.",
+        "a": "B) Cheap land hides massive costs \u2014 3x cooling, gas grids that cancel green progress, and water scarcity. If they cut corners everywhere else, the promises they made to your city are probably just PR.",
+        "success": "<strong>Pattern Spotted!</strong> Where a company builds its OTHER data centers reveals its true priorities. Meta and Google chose Scandinavia for a reason \u2014 free cooling + clean grids.",
     },
     5: {
         "t": "t9",
@@ -1190,17 +1190,17 @@ window.CTO_ROUNDS = [
           fb:"Saving answers helps a little, but most questions are unique \\u2014 the biggest model still runs almost every time. It\\u2019s like putting a tiny bandage on a big problem.", tier:"poor" },
       ],
     },
-    { id:"location", title:"Location, Location, Location", emoji:"\\ud83d\\udccd",
+    { id:"expansion", title:"The Bigger Picture", emoji:"\\ud83d\\udccd",
       choices:[
-        { id:"a", label:"Build in Cold Scandinavia", icon:"\\ud83c\\uddf8\\ud83c\\uddea",
+        { id:"a", label:"Cold & Clean Locations", icon:"\\ud83c\\udf0d",
           fx:{energy:-20,water:-40,co2:-30,cost:-18,greenScore:20,reputation:18},
-          fb:"This is what Meta and Google actually did! The freezing air cools computers for free. Almost all the electricity is clean. Brilliant pick!", tier:"best" },
-        { id:"b", label:"Build in Rainy Oregon", icon:"\\ud83c\\udf32",
+          fb:"NovaMind walks the talk! Companies like Meta and Google actually build in Scandinavia because freezing air = free cooling and clean grids. This company is the real deal.", tier:"best" },
+        { id:"b", label:"A Mixed Strategy", icon:"\\u2696\\ufe0f",
           fx:{energy:-10,water:-20,co2:-18,cost:-10,greenScore:12,reputation:10},
-          fb:"Good pick! Amazon and Google already have big buildings there. The rivers provide clean hydropower, and the mild weather means less cooling needed.", tier:"good" },
-        { id:"c", label:"Stay in the Hot Desert", icon:"\\ud83c\\udfdc\\ufe0f",
+          fb:"Not bad, but not great. Oregon is smart, but Texas and Ireland raise flags. Ireland banned new data centers in 2022 because they threatened 18% of the national grid.", tier:"good" },
+        { id:"c", label:"Wherever Land Is Cheapest", icon:"\\ud83c\\udfdc\\ufe0f",
           fx:{energy:5,water:10,co2:5,cost:5,greenScore:-3,reputation:-10},
-          fb:"Cheap land sounds great, but the scorching heat means 3x more cooling costs. The gas-powered grid cancels out your earlier wins. NovaMind lands on a \\u2018worst polluters\\u2019 list.", tier:"poor" },
+          fb:"Red flag. If NovaMind builds everywhere cheap and dirty, the sustainability promises they made to YOUR city are probably just PR. The pattern reveals the truth.", tier:"poor" },
       ],
     },
     { id:"transparency", title:"Honesty Check", emoji:"\\ud83d\\udcca",
@@ -1487,7 +1487,7 @@ function ctoRenderResults() {
     // Audit trail
     var tc2 = {best:"var(--cto-success)", good:"var(--cto-warning)", poor:"var(--cto-error)"};
     var tl2 = {best:"Best", good:"Good", poor:"Poor"};
-    var roundNames = [null, "Cooling", "Energy Source", "AI Efficiency", "Location", "Transparency"];
+    var roundNames = [null, "Cooling", "Energy Source", "AI Efficiency", "Global Plan", "Transparency"];
     var roundEmojis = [null, "\\ud83c\\udf21\\ufe0f", "\\u26a1", "\\ud83e\\udde0", "\\ud83d\\udccd", "\\ud83d\\udcca"];
     var auditHtml = '';
     for (var ai = 0; ai < choices.length; ai++) {
