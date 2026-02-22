@@ -3368,48 +3368,47 @@ def create_model_building_game_en_final_sustainability_app(theme_primary_hue: st
             gr.Markdown("<h1 style='text-align:center;'>🚀 The Final Challenge</h1>")
 
             gr.HTML(
-                “””
-                <div class=’slide-content’>
-                    <div class=’panel-box’>
+                """
+                <div class="slide-content">
+                    <div class="panel-box">
 
-                        <div class=”final-intro-wrapper”>
-                            <p class=”final-intro-text”>
+                        <div class="final-intro-wrapper">
+                            <p class="final-intro-text">
                                 You’ve explored the data. You’ve uncovered AI’s hidden costs &mdash; from energy use to water consumption and infrastructure impact.
                             </p>
-                            <p class=”final-intro-text”>
+                            <p class="final-intro-text">
                                 Now that you understand how to apply AI responsibly and sustainably, you’ve earned new points &mdash; and your Moral Compass Score reflects your progress.
                             </p>
-                            <p class=”final-intro-text”>
+                            <p class="final-intro-text">
                                 Now it’s time to play again.
                             </p>
                         </div>
 
-                        <div class=”final-mission-card”>
-                            <h3 class=”final-mission-title”>🛠️ The Final Challenge</h3>
-                            <div class=”final-mission-body”>
+                        <div class="final-mission-card">
+                            <h3 class="final-mission-title">🛠️ The Final Challenge</h3>
+                            <div class="final-mission-body">
                                 <p>Return to the same competition and build your most accurate model yet to identify inefficient buildings. The game hasn’t changed &mdash; but you have.</p>
 
                                 <p>Push your model’s precision as far as you can and climb the leaderboard.</p>
                             </div>
                         </div>
 
-                        <div class=”final-cta-wrapper”>
-                            <p class=”final-cta-head”>
+                        <div class="final-cta-wrapper">
+                            <p class="final-cta-head">
                                 Can you improve your score?
                             </p>
-                            <p class=”final-cta-sub”>
-                                👇 Click <b>”Enter the Arena”</b> to begin.
+                            <p class="final-cta-sub">
+                                👇 Click <b>"Enter the Arena"</b> to begin.
                             </p>
                         </div>
 
                     </div>
                 </div>
-                “””
+                """
             )
 
-            # Only ONE button needed now
-            intro_next_btn = gr.Button(“Enter the Arena ▶️”, variant=”primary”, size=”lg”)
-
+            # Fixed quotes for button and its arguments
+            intro_next_btn = gr.Button("Enter the Arena ▶️", variant="primary", size="lg")
 
         # Model Building App (Main Interface)
         with gr.Column(visible=False, elem_id="model-step") as model_building_step:
