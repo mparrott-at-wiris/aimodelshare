@@ -548,25 +548,25 @@ MODULES = [
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
-                    <h2 class="slide-title" style="text-align:center;">📋 El Teu Currículum d'Enginyeria</h2>
+                    <h2 class="slide-title" style="text-align:center;">📋 El teu curr&iacute;culum com a enginyer/a d'IA</h2>
                     <p style="text-align:center; margin-bottom:20px; opacity: 0.9;">
-                        Has transformat la IA de càrrega mediambiental a tecnologia sostenible. Felicitats! Això és el que has millorat:
+                        Has passat de veure la IA com una c&agrave;rrega ambiental a convertir-la en una tecnologia m&eacute;s sostenible. Enhorabona! Aix&ograve; &eacute;s el que has aconseguit millorar:
                     </p>
 
                     <div style="display:grid; gap:15px;">
                         <div style="background: rgba(59, 130, 246, 0.1); border-left:5px solid #3b82f6; padding:15px; border-radius:4px;">
-                            <div style="font-weight:800; color:#3b82f6; font-size:1.1rem;">⚡ CONSCIÈNCIA ENERGÈTICA</div>
-                            <div style="opacity: 0.9;">Has rastrejat els costos energètics ocults de la IA des del prompt fins a la GPU, descobrint que una imatge d'IA costa mitja càrrega de telèfon i 25 prompts evaporen una ampolla d'aigua.</div>
+                            <div style="font-weight:800; color:#3b82f6; font-size:1.1rem;">⚡ CONSCI&Egrave;NCIA ENERG&Egrave;TICA</div>
+                            <div style="opacity: 0.9;">Has descobert els costos energ&egrave;tics ocults de la IA, des de la pregunta que escrius fins als ordinadors gegants que la processen. Ara saps que generar una sola imatge pot consumir l'equivalent a mitja c&agrave;rrega de m&ograve;bil, i que fer 25 consultes pot evaporar una ampolla d'aigua.</div>
                         </div>
 
                         <div style="background: rgba(139, 92, 246, 0.1); border-left:5px solid #8b5cf6; padding:15px; border-radius:4px;">
-                            <div style="font-weight:800; color:#8b5cf6; font-size:1.1rem;">✂️ OPTIMITZACIÓ D'EFICIÈNCIA</div>
-                            <div style="opacity: 0.9;">Has dominat l'enginyeria de prompts i la selecció de models per reduir el malbaratament energètic de la IA en més del 60% sense sacrificar la qualitat.</div>
+                            <div style="font-weight:800; color:#8b5cf6; font-size:1.1rem;">✂️ OPTIMITZACI&Oacute; I EFICI&Egrave;NCIA</div>
+                            <div style="opacity: 0.9;">Has apr&egrave;s a formular millor les teves preguntes i a triar el model adequat per reduir el malbaratament energ&egrave;tic en m&eacute;s d'un 60%, sense perdre qualitat en els resultats.</div>
                         </div>
 
                         <div style="background: rgba(16, 185, 129, 0.1); border-left:5px solid #10b981; padding:15px; border-radius:4px;">
-                            <div style="font-weight:800; color:#10b981; font-size:1.1rem;">🌍 INTEL·LIGÈNCIA D'INFRAESTRUCTURA</div>
-                            <div style="opacity: 0.9;">Has avaluat la refrigeració de centres de dades, les afirmacions d'energia renovable enfront de la realitat, i els impactes a la xarxa elèctrica de diferents països.</div>
+                            <div style="font-weight:800; color:#10b981; font-size:1.1rem;">🌍 INTEL&middot;LIG&Egrave;NCIA D'INFRAESTRUCTURA</div>
+                            <div style="opacity: 0.9;">Has analitzat com es refreden els centres de dades, qu&egrave; hi ha darrere de les promeses d'energia renovable i com aquests sistemes impacten la xarxa el&egrave;ctrica de diferents pa&iuml;sos.</div>
                         </div>
                     </div>
 

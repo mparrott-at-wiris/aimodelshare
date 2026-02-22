@@ -538,17 +538,17 @@ MODULES = [
                     <div style="display:grid; gap:15px;">
                         <div style="background: rgba(59, 130, 246, 0.1); border-left:5px solid #3b82f6; padding:15px; border-radius:4px;">
                             <div style="font-weight:800; color:#3b82f6; font-size:1.1rem;">⚡ ENERGY AWARENESS</div>
-                            <div style="opacity: 0.9;">You traced AI's hidden energy costs from prompt to GPU, uncovering that one AI image costs half a phone charge and 25 prompts evaporate a water bottle.</div>
+                            <div style="opacity: 0.9;">You uncovered AI's hidden energy costs &mdash; from the question you type to the powerful computers that process it. You learned that generating a single AI image can use as much energy as half a phone charge, and that 25 AI requests can evaporate a bottle of water.</div>
                         </div>
 
                         <div style="background: rgba(139, 92, 246, 0.1); border-left:5px solid #8b5cf6; padding:15px; border-radius:4px;">
                             <div style="font-weight:800; color:#8b5cf6; font-size:1.1rem;">✂️ EFFICIENCY OPTIMIZATION</div>
-                            <div style="opacity: 0.9;">You mastered prompt engineering and model selection to cut AI energy waste by 60%+ without sacrificing quality.</div>
+                            <div style="opacity: 0.9;">You learned how to ask smarter questions and choose the right AI model for the task, cutting energy waste by more than 60% without sacrificing quality.</div>
                         </div>
 
                         <div style="background: rgba(16, 185, 129, 0.1); border-left:5px solid #10b981; padding:15px; border-radius:4px;">
                             <div style="font-weight:800; color:#10b981; font-size:1.1rem;">🌍 INFRASTRUCTURE INTELLIGENCE</div>
-                            <div style="opacity: 0.9;">You evaluated data center cooling, renewable energy claims vs. reality, and grid impacts across nations.</div>
+                            <div style="opacity: 0.9;">You examined how data centers are cooled, what's behind renewable energy claims, and how large-scale AI systems impact national power grids.</div>
                         </div>
                     </div>
 
