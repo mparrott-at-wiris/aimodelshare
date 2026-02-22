@@ -577,7 +577,7 @@ MODULES = [
                         <div style="font-weight:700; color: var(--color-primary); margin-bottom:10px;">AUTHORIZED FOR:</div>
                         <div style="font-size:1.5rem; font-weight:900; color: var(--color-primary); margin-bottom:5px;">GREEN AI ENGINEER</div>
                         <p style="font-size:0.9rem; color: var(--body-text-color); margin:0;">
-                            This document proves you prioritize Sustainability over Convenience.
+                            This document certifies that you have acquired knowledge in sustainable AI.
                         </p>
                     </div>
                 </div>

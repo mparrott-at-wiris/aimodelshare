@@ -419,7 +419,7 @@ def generate_html_certificate(name, score, team_name):
                         font-size: 1.4rem;
                         letter-spacing: -0.5px;
                     ">
-                        Green AI Initiative - Programa de Educación Digital
+                        Iniciativa de IA Verde - Programa de Educación Digital
                     </div>
                     <div style="font-size: 0.75rem; color: {c_slate} !important; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 5px;">
                         IA Sostenible - Acreditación de Responsabilidad Medioambiental
@@ -440,7 +440,7 @@ def generate_html_certificate(name, score, team_name):
                     text-transform: uppercase;
                     letter-spacing: 3px;
                     margin: 0;
-                ">Certificación Green AI Initiative</h3>
+                ">Certificación de la Iniciativa de IA Verde</h3>
 
                 <h3 style="
                     font-family: 'Source Serif Pro', 'Georgia', serif;
@@ -454,7 +454,7 @@ def generate_html_certificate(name, score, team_name):
             </div>
 
             <div style="background: #f8fafc; padding: 30px; border-radius: 8px; border-left: 6px solid {c_primary}; margin-bottom: 40px; text-align: left;">
-                <p style="font-size: 0.9rem; color: {c_slate} !important; text-transform: uppercase; margin: 0 0 5px 0;">Otorgado al Ingeniero/a Green AI</p>
+                <p style="font-size: 0.9rem; color: {c_slate} !important; text-transform: uppercase; margin: 0 0 5px 0;">Otorgado al ingeniero/a de IA Verde</p>
                 <h2 style="
                     font-family: 'Source Serif Pro', 'Georgia', serif;
                     font-size: 3rem;
@@ -489,7 +489,7 @@ def generate_html_certificate(name, score, team_name):
             <div style="border-top: 2px solid {c_dark}; padding-top: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
                 <div style="text-align: left;">
                     <div style="font-family: 'Source Serif Pro', serif; font-size: 1.2rem; font-weight: 700; color: {c_black} !important;">
-                        Iniciativa Green AI
+                        Iniciativa de IA Verde
                     </div>
                     <div style="font-size: 0.85rem; color: {c_slate} !important; margin-top: 5px;">
                        {date_str}
@@ -521,7 +521,7 @@ MODULES = [
                             Logro Desbloqueado
                         </h2>
                         <p style="font-size:1.1rem; max-width:800px; margin:0 auto; color: var(--body-text-color);">
-                            Has completado con éxito el Protocolo Green AI.
+                            Has completado con éxito el protocolo de IA Verde.
                             <br>
                             Revisa tus métricas de rendimiento finales a continuación antes de reclamar tu credencial.
                         </p>
@@ -588,14 +588,14 @@ MODULES = [
                 <div class="slide-body">
                     <h2 class="slide-title" style="text-align:center; color: var(--color-primary);">🎓 Reclama Tus Credenciales</h2>
                     <p style="text-align:center; margin-bottom:20px; color: var(--body-text-color);">
-                        Introduce tu nombre exactamente como quieres que aparezca en tu certificado oficial de la <strong>Iniciativa Green AI</strong>.
+                        Introduce tu nombre exactamente como quieres que aparezca en tu certificado oficial de la <strong>Iniciativa de IA Verde</strong>.
                     </p>
 
                     <div style="background: rgba(22, 101, 52, 0.15); border:1px solid rgba(22, 101, 52, 0.3); padding:20px; border-radius:12px; text-align:center; margin-bottom:20px;">
                         <div style="font-weight:700; color: var(--color-primary); margin-bottom:10px;">AUTORIZADO PARA:</div>
-                        <div style="font-size:1.5rem; font-weight:900; color: var(--color-primary); margin-bottom:5px;">INGENIERO/A GREEN AI</div>
+                        <div style="font-size:1.5rem; font-weight:900; color: var(--color-primary); margin-bottom:5px;">INGENIERO/A DE IA VERDE</div>
                         <p style="font-size:0.9rem; color: var(--body-text-color); margin:0;">
-                            Este documento demuestra que priorizas la Sostenibilidad sobre la Comodidad.
+                            Este documento certifica que has adquirido conocimientos en IA sostenible.
                         </p>
                     </div>
                 </div>
@@ -695,7 +695,7 @@ def create_cert_handler(user_input_name, username_state, token, team_name):
     # Generate HTML content
     cert_html = generate_html_certificate(user_input_name, score, team_name)
 
-    share_text = f"¡Acabo de certificarme como Ingeniero/a Green AI! 🌱 #GreenAI #IASostenible"
+    share_text = f"¡Acabo de certificarme como Ingeniero/a de IA Verde! 🌱 #IAVerde #IASostenible"
     # (Links omitted for brevity, they remain the same)
     
     # --- JAVASCRIPT POPUP PRINTER ---
