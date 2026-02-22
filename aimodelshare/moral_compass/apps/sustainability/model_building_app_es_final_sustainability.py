@@ -716,26 +716,26 @@ MODEL_TYPES = {
         "model_builder": lambda: LogisticRegression(
             max_iter=500, random_state=42, class_weight="balanced"
         ),
-        "card": "### ⚖️ El Generalista Equilibrado\nModelo rápido, fiable y equilibrado. Ideal para identificar tendencias generales en el uso de energía de los edificios."
+        "card": "### ⚖️ El generalista equilibrado\nModelo rápido, fiable y equilibrado. Ideal para identificar tendencias generales en el uso de energía de los edificios."
     },
     "The Rule-Maker": {
         "model_builder": lambda: DecisionTreeClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "### 📐 El Creador de Reglas\nCrea reglas lógicas basadas en umbrales (ej: 'Si el edificio es anterior a 1970 Y tiene más de 10 plantas...'). Muy fácil de explicar."
+        "card": "### 📐 El creador de reglas\nCrea reglas lógicas basadas en umbrales (ej: 'Si el edificio es anterior a 1970 Y tiene más de 10 plantas...'). Muy fácil de explicar."
     },
     "The 'Nearest Neighbor'": {
         "model_builder": lambda: KNeighborsClassifier(),
-        "card": "### 🫂 El 'Vecino Más Cercano'\nCompara cada edificio con casos similares en los datos. Si edificios parecidos son ineficientes, predirá lo mismo para este."
+        "card": "### 🫂 El 'vecino más cercano'\nCompara cada edificio con casos similares en los datos. Si edificios parecidos son ineficientes, predirá lo mismo para este."
     },
     "The Deep Pattern-Finder": {
         "model_builder": lambda: RandomForestClassifier(
             random_state=42, class_weight="balanced"
         ),
-        "card": "### 🌲 El Buscador de Patrones Profundo\nAnaliza multitud de subgrupos para captar ineficiencias energéticas complejas. El más potente para maximizar el impacto climático."
+        "card": "### 🌲 El buscador de patrones profundo\nAnaliza multitud de subgrupos para captar ineficiencias energéticas complejas. El más potente para maximizar el impacto climático."
     },
     "The Majority Vote": {
-        "card": "### 🗳️ El Voto Mayoritario\nCombina las predicciones de los cuatro modelos y selecciona la más frecuente. ¡Tu mejor opción para liderar el ranking!",
+        "card": "### 🗳️ El voto mayoritario\nCombina las predicciones de los cuatro modelos y selecciona la más frecuente. ¡Tu mejor opción para liderar el ranking!",
         "cache_only": True
     }
 }
@@ -774,11 +774,11 @@ def translate_team_name_for_display(english_name: str, lang: str = "es") -> str:
 
 
 MODEL_DISPLAY_MAP = {
-    "The Balanced Generalist": "El Generalista Equilibrado",
-    "The Rule-Maker": "El Creador de Reglas",
-    "The 'Nearest Neighbor'": "El 'Vecino Más Cercano'",
-    "The Deep Pattern-Finder": "El Buscador de Patrones Profundo",
-    "The Majority Vote": "El Voto Mayoritario"
+    "The Balanced Generalist": "El generalista equilibrado",
+    "The Rule-Maker": "El creador de reglas",
+    "The 'Nearest Neighbor'": "El 'vecino más cercano'",
+    "The Deep Pattern-Finder": "El buscador de patrones profundo",
+    "The Majority Vote": "El voto mayoritario"
 }
 
 DATA_SIZE_DISPLAY_MAP = {
@@ -1126,7 +1126,7 @@ def _normalize_team_name(name: str) -> str:
 
 
 
-def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Construye y Envía Modelo"):
+def _build_skeleton_leaderboard(rows=6, is_team=True, submit_button_label="5. 🔬 Construye y envía modelo"):
     context_label = "Equipo" if is_team else "Individual"
     return f"""
     <div class='lb-placeholder' aria-live='polite'>
@@ -1163,7 +1163,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
 
     # Handle pending state - show processing message with provisional diff
     if is_pending:
-        title = "⏳ Envío en Proceso"
+        title = "⏳ Envío en proceso"
         acc_color = "#3b82f6"  # Blue
         acc_text = f"{(local_test_accuracy * 100):.2f}%" if local_test_accuracy is not None else "N/D"
         
@@ -1171,7 +1171,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         if local_test_accuracy is not None and last_score is not None and last_score > 0:
             score_diff = local_test_accuracy - last_score
             if abs(score_diff) < 0.0001:
-                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: var(--secondary-text-color, #6b7280); margin:0;'>Sin Cambios (↔) <span style='font-size: 0.9rem; color: var(--secondary-text-color, #9ca3af);'>(Estimado)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: var(--secondary-text-color, #6b7280); margin:0; padding-top: 8px;'>Actualizando clasificación...</p>"
+                acc_diff_html = "<p style='font-size: 1.5rem; font-weight: 600; color: var(--secondary-text-color, #6b7280); margin:0;'>Sin cambios (↔) <span style='font-size: 0.9rem; color: var(--secondary-text-color, #9ca3af);'>(Estimado)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: var(--secondary-text-color, #6b7280); margin:0; padding-top: 8px;'>Actualizando clasificación...</p>"
             elif score_diff > 0:
                 acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #16a34a; margin:0;'>+{(score_diff * 100):.2f} (⬆️) <span style='font-size: 0.9rem; color: var(--secondary-text-color, #9ca3af);'>(Estimado)</span></p><p style='font-size: 1.2rem; font-weight: 500; color: var(--secondary-text-color, #6b7280); margin:0; padding-top: 8px;'>Actualizando clasificación...</p>"
             else:
@@ -1187,7 +1187,7 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         
     # Handle preview mode - Styled to match "success" card
     elif is_preview:
-        title = "🔬 ¡Vista Previa Exitosa!"
+        title = "🔬 ¡Vista previa exitosa!"
         acc_color = "#16a34a"  # Green (like success)
         acc_text = f"{(new_score * 100):.2f}%" if new_score > 0 else "N/D"
         acc_diff_html = "<p style='font-size: 1.2rem; font-weight: 500; color: var(--secondary-text-color, #6b7280); margin:0; padding-top: 8px;'>(Solo vista previa — no se ha enviado)</p>" # Neutral color
@@ -1201,19 +1201,19 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         # 2. Handle Score Changes
         score_diff = new_score - last_score
         if abs(score_diff) < 0.0001:
-            title = "✅ Envío Exitoso"
+            title = "✅ Envío exitoso"
             acc_color = "#6b7280" # gray
             acc_text = f"{(new_score * 100):.2f}%"
-            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>Sin Cambios (↔)</p>"
+            acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>Sin cambios (↔)</p>"
             border_color = acc_color
         elif score_diff > 0:
-            title = "✅ ¡Envío Exitoso!"
+            title = "✅ ¡Envío exitoso!"
             acc_color = "#16a34a" # green
             acc_text = f"{(new_score * 100):.2f}%"
             acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>+{(score_diff * 100):.2f} (⬆️)</p>"
             border_color = acc_color
         else:
-            title = "📉 Puntuación Bajó"
+            title = "📉 Puntuación bajó"
             acc_color = "#ef4444" # red
             acc_text = f"{(new_score * 100):.2f}%"
             acc_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {acc_color}; margin:0;'>{(score_diff * 100):.2f} (⬇️)</p>"
@@ -1230,21 +1230,21 @@ def _build_kpi_card_html(new_score, last_score, new_rank, last_rank, submission_
         elif rank_diff < 0:
             rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: #ef4444; margin:0;'>🔻 Bajaste {abs(rank_diff)} puesto{'s' if abs(rank_diff) > 1 else ''}</p>"
         else:
-            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>Sin Cambios (↔)</p>"
+            rank_diff_html = f"<p style='font-size: 1.5rem; font-weight: 600; color: {rank_color}; margin:0;'>Sin cambios (↔)</p>"
 
     return f"""
     <div class='kpi-card' style='border-color: {border_color};'>
         <h2 style='color: var(--body-text-color); margin-top:0;'>{title}</h2>
         <div class='kpi-card-body'>
             <div class='kpi-metric-box'>
-                <p class='kpi-label'>Nueva Precisión</p>
+                <p class='kpi-label'>Nueva precisión</p>
                 <p style='font-size:0.8rem; color:var(--secondary-text-color, #6b7280); margin:0;'>% de edificios que tu IA predijo correctamente</p>
                 <p class='kpi-score' style='color: {acc_color};'>{acc_text}</p>
                 {acc_diff_html}
                 <p style='font-size:0.75rem; color:var(--secondary-text-color, #9ca3af); margin:8px 0 0;'>Menos de 60% = Mejorable &middot; 60-70% = Aceptable &middot; 70-80% = Bueno &middot; 80%+ = Excelente</p>
             </div>
             <div class='kpi-metric-box'>
-                <p class='kpi-label'>Tu Posición</p>
+                <p class='kpi-label'>Tu posición</p>
                 <p class='kpi-score' style='color: {rank_color};'>{rank_text}</p>
                 {rank_diff_html}
             </div>
@@ -1271,8 +1271,8 @@ def _build_team_html(team_summary_df, team_name):
             <tr>
                 <th>Posición</th>
                 <th>Equipo</th>
-                <th>Mejor Punt.</th>
-                <th>Punt. Media</th>
+                <th>Mejor punt.</th>
+                <th>Punt. media</th>
                 <th>Envíos</th>
             </tr>
         </thead>
@@ -1309,7 +1309,7 @@ def _build_individual_html(individual_summary_df, username):
             <tr>
                 <th>Posición</th>
                 <th>Ingeniero/a</th>
-                <th>Mejor Punt.</th>
+                <th>Mejor punt.</th>
                 <th>Envíos</th>
             </tr>
         </thead>
@@ -1448,7 +1448,7 @@ def compute_rank_settings(
     data_size_value = current_data_size if current_data_size in all_data_sizes else DEFAULT_DATA_SIZE
 
     return {
-        "rank_message": "# 👑 Rango: Arquitecto/a Climático/a Jefe\n<p style='font-size:24px; line-height:1.4;'>¡Todas las herramientas desbloqueadas — optimiza con libertad!</p>",
+        "rank_message": "# 👑 Rango: arquitecto/a climático/a jefe\n<p style='font-size:24px; line-height:1.4;'>¡Todas las herramientas desbloqueadas — optimiza con libertad!</p>",
         "model_choices": [(MODEL_DISPLAY_MAP.get(k, k), k) for k in all_models],
         "model_value": model_value,
         "model_interactive": True,
@@ -1664,7 +1664,7 @@ def perform_inline_login(username_input, password_input):
                 {team_message}
             </p>
             <p style='margin:8px 0 0 0; color:#166534; font-size:0.95rem;'>
-                Haz clic en "Construye y Envía Modelo" de nuevo para publicar tu puntuación.
+                Haz clic en "Construye y envía modelo" de nuevo para publicar tu puntuación.
             </p>
         </div>
         """
@@ -1673,7 +1673,7 @@ def perform_inline_login(username_input, password_input):
             login_password: gr.update(visible=False),
             login_submit: gr.update(visible=False),
             login_error: gr.update(value=success_html, visible=True),
-            submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True),
+            submit_button: gr.update(value="🔬 Construye y envía modelo", interactive=True),
             submission_feedback_display: gr.update(visible=False),
             team_name_state: gr.update(value=team_name),
             username_state: gr.update(value=username_clean),
@@ -1752,7 +1752,7 @@ def run_experiment(
         """
         yield {
             submission_feedback_display: gr.update(value=error_html, visible=True),
-            submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True)
+            submit_button: gr.update(value="🔬 Construye y envía modelo", interactive=True)
         }
         return
     
@@ -1798,9 +1798,9 @@ def run_experiment(
         """
 
     # --- Stage 1: Lock UI and give initial feedback ---
-    progress(0.1, desc="Iniciando Experimento...")
+    progress(0.1, desc="Iniciando experimento...")
     initial_updates = {
-        submit_button: gr.update(value="⏳ Experimento en Curso...", interactive=False),
+        submit_button: gr.update(value="⏳ Experimento en curso...", interactive=False),
         submission_feedback_display: gr.update(value=get_status_html(1, "Inicializando", "Preparando tus ingredientes de datos..."), visible=True), # Make sure it's visible
         login_error: gr.update(visible=False), # Hide login success/error message
         attempts_tracker_display: gr.update(value=_build_attempts_tracker_html(submission_count))
@@ -1829,7 +1829,7 @@ def run_experiment(
         
         error_updates = {
             submission_feedback_display: gr.update(value=error_msg, visible=True),
-            submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True),
+            submit_button: gr.update(value="🔬 Construye y envía modelo", interactive=True),
             team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
             individual_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=False),
             last_submission_score_state: last_submission_score,
@@ -1856,7 +1856,7 @@ def run_experiment(
 
     try:
         # --- Stage 2: Fetch Cached Predictions ---
-        progress(0.3, desc="Recuperando Predicciones...")
+        progress(0.3, desc="Recuperando predicciones...")
         
         # Ensure test labels are loaded
         _ensure_y_test_loaded()
@@ -1865,7 +1865,7 @@ def run_experiment(
         cache_key = build_cache_key(model_name_key, complexity_level, feature_set, data_size_str_en)
         
         yield { 
-            submission_feedback_display: gr.update(value=get_status_html(2, "Cargando Predicciones", "⚡ Buscando las predicciones de tu IA..."), visible=True),
+            submission_feedback_display: gr.update(value=get_status_html(2, "Cargando predicciones", "⚡ Buscando las predicciones de tu IA..."), visible=True),
             login_error: gr.update(visible=False)
         }
         
@@ -1887,15 +1887,15 @@ def run_experiment(
             _log(f"❌ CACHE MISS: {cache_key}")
             error_html = f"""
             <div style='background:#fee2e2; padding:16px; border-radius:8px; border:2px solid #ef4444; color:#991b1b; text-align:center;'>
-                <h3 style='margin:0;'>⚠️ Configuración No Encontrada</h3>
+                <h3 style='margin:0;'>⚠️ Configuración no encontrada</h3>
                 <p style='margin:8px 0;'>Esta combinación específica de ajustes no se encontró en nuestra base de datos precalculada.</p>
-                <p style='font-size:0.9em;'>Ajusta tus opciones (ej: cambia el Tamaño de Datos o la Estrategia de Modelo) e inténtalo de nuevo.</p>
+                <p style='font-size:0.9em;'>Ajusta tus opciones (ej: cambia el tamaño de datos o la estrategia de modelo) e inténtalo de nuevo.</p>
             </div>
             """
             settings = compute_rank_settings(submission_count, model_name_key, complexity_level, feature_set, data_size_str)
             yield { 
                 submission_feedback_display: gr.update(value=error_html, visible=True),
-                submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True),
+                submit_button: gr.update(value="🔬 Construye y envía modelo", interactive=True),
                 login_error: gr.update(visible=False),
                 rank_message_display: settings["rank_message"],
                 model_type_radio: gr.update(choices=settings["model_choices"], value=settings["model_value"], interactive=settings["model_interactive"]),
@@ -1918,7 +1918,7 @@ def run_experiment(
         # AUTHENTICATION GATE: Check for token before submission
         if token is None:
             # User not authenticated - compute preview score and show login prompt
-            progress(0.6, desc="Calculando Puntuación de Vista Previa...")
+            progress(0.6, desc="Calculando puntuación de vista previa...")
             
             # Calculate accuracy using cached predictions and preloaded test labels
             from sklearn.metrics import accuracy_score
@@ -1948,7 +1948,7 @@ def run_experiment(
             
             gate_updates = {
                 submission_feedback_display: gr.update(value=combined_html, visible=True),
-                submit_button: gr.update(value="Inicio de Sesión Requerido", interactive=False),
+                submit_button: gr.update(value="Inicio de sesión requerido", interactive=False),
                 login_username: gr.update(visible=True), login_password: gr.update(visible=True),
                 login_submit: gr.update(visible=True), login_error: gr.update(value="", visible=False),
                 team_leaderboard_display: _build_skeleton_leaderboard(rows=6, is_team=True),
@@ -2025,7 +2025,7 @@ def run_experiment(
             new_first_submission_score = this_submission_score
 
         # --- Stage 4: Local Rank Calculation (Optimistic) ---
-        progress(0.9, desc="Calculando Posición...")
+        progress(0.9, desc="Calculando posición...")
         
         # 3. SIMULATE UPDATED LEADERBOARD
         simulated_df = baseline_leaderboard_df.copy() if baseline_leaderboard_df is not None else pd.DataFrame()
@@ -2085,24 +2085,24 @@ def run_experiment(
             # 1. Append the Limit Warning HTML *below* the Result Card
             limit_html = f"""
             <div style='margin-top: 16px; border: 2px solid #ef4444; background:#fef2f2; padding:16px; border-radius:12px; text-align:left;'>
-                <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límite de Envíos Alcanzado ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
+                <h3 style='margin:0 0 8px 0; color:#991b1b;'>🛑 Límite de envíos alcanzado ({ATTEMPT_LIMIT}/{ATTEMPT_LIMIT})</h3>
                 <p style='margin:0; color:#7f1d1d; line-height:1.4;'>
                     <b>Has utilizado todos tus intentos en esta sesión.</b><br>
-                    Revisa tus resultados finales arriba y luego desplázate hasta "Finalizar y Reflexionar" para continuar.
+                    Revisa tus resultados finales arriba y luego desplázate hasta "Finalizar y reflexionar" para continuar.
                 </p>
             </div>
             """
             final_html_display = kpi_card_html + limit_html
             
             # 2. Disable all controls
-            button_update = gr.update(value="🛑 Límite Alcanzado", interactive=False)
+            button_update = gr.update(value="🛑 Límite alcanzado", interactive=False)
             interactive_state = False
             tracker_html = f"<div style='text-align:center; padding:8px; margin:8px 0; background:#fef2f2; border-radius:8px; border:1px solid #ef4444;'><p style='margin:0; color:#991b1b; font-weight:600;'>🛑 Intentos utilizados: {ATTEMPT_LIMIT}/{ATTEMPT_LIMIT} (Máx)</p></div>"
         
         else:
             # Normal State: Show just the result card and keep controls active
             final_html_display = kpi_card_html
-            button_update = gr.update(value="🔬 Construye y Envía Modelo", interactive=True)
+            button_update = gr.update(value="🔬 Construye y envía modelo", interactive=True)
             interactive_state = True
             tracker_html = _build_attempts_tracker_html(new_submission_count)
 
@@ -2165,7 +2165,7 @@ def run_experiment(
             complexity_slider: gr.update(minimum=1, maximum=settings["complexity_max"], value=settings["complexity_value"]),
             feature_set_checkbox: gr.update(choices=settings["feature_set_choices"], value=settings["feature_set_value"], interactive=settings["feature_set_interactive"]),
             data_size_radio: gr.update(choices=settings["data_size_choices"], value=settings["data_size_value"], interactive=settings["data_size_interactive"]),
-            submit_button: gr.update(value="🔬 Construye y Envía Modelo", interactive=True),
+            submit_button: gr.update(value="🔬 Construye y envía modelo", interactive=True),
             login_username: gr.update(visible=False),
             login_password: gr.update(visible=False),
             login_submit: gr.update(visible=False),
@@ -2201,7 +2201,7 @@ def on_initial_load(username, token=None, team_name=""):
         
         <div style='background:var(--color-accent-soft, #eff6ff); padding:16px; border-radius:12px; border:2px solid color-mix(in srgb, var(--color-accent, #3b82f6) 40%, transparent); display:inline-block;'>
             <p style='margin:0; color:var(--color-accent, #1e40af); font-weight:bold; font-size:1.1rem;'>
-                👈 ¡Haz clic en "Construye y Envía Modelo" para empezar!
+                👈 ¡Haz clic en "Construye y envía modelo" para empezar!
             </p>
         </div>
     </div>
@@ -2284,7 +2284,7 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
     <div class="final-conclusion-root">
       
       <h1 class="final-conclusion-title">🎓 Certificación obtenida</h1>
-      <h2 style="margin-top:0; color:var(--text-muted);">IA Sostenible: Ingeniería de Vanguardia</h2>
+      <h2 style="margin-top:0; color:var(--text-muted);">IA sostenible: ingeniería de vanguardia</h2>
 
       <div class="final-conclusion-card">
         
@@ -2306,10 +2306,10 @@ def build_final_conclusion_html(best_score, submissions, rank, first_score, feat
         <hr class="final-conclusion-divider" />
 
         <div class="final-conclusion-next">
-          <h2>El Viaje Continúa</h2>
+          <h2>El viaje continúa</h2>
           
           <div style="text-align: left; margin-top: 15px;">
-              <p>¡Enhorabuena! Has completado la <b>Certificación de IA Sostenible: Ingeniería de Vanguardia</b> y has visto cómo el aprendizaje automático puede abordar los desafíos climáticos globales.</p>
+              <p>¡Enhorabuena! Has completado la <b>Certificación de IA sostenible: ingeniería de vanguardia</b> y has visto cómo el aprendizaje automático puede abordar los desafíos climáticos globales.</p>
 
               <p>A lo largo de este desafío, has aprendido a:</p>
               <ul style="margin-bottom: 15px;">
@@ -3415,51 +3415,55 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
 
         # Slide 7: The Final Transition
         with gr.Column(visible=True, elem_id="intro-slide") as intro_slide:            
-            gr.Markdown("<h1 style='text-align:center;'>🚀 El Desafío Final</h1>")
-            
+            gr.Markdown("<h1 style='text-align:center;'>🚀 El desafío final</h1>")
+
             gr.HTML(
                 """
                 <div class='slide-content'>
                     <div class='panel-box'>
-                        
+
                         <div class="final-intro-wrapper">
                             <p class="final-intro-text">
-                                Has explorado los datos. Has identificado patrones energéticos.
-                                <br>
-                                Ahora es el momento de construir tu modelo más optimizado.
+                                Has explorado los datos. Has descubierto los costes ocultos de la IA &mdash; desde el consumo energ&eacute;tico hasta el uso de agua y el impacto en la infraestructura.
+                            </p>
+                            <p class="final-intro-text">
+                                Ahora que sabes c&oacute;mo aplicar la IA de manera responsable y sostenible, has ganado nuevos puntos &mdash; y tu Puntuaci&oacute;n de la Br&uacute;jula Moral refleja tu progreso.
+                            </p>
+                            <p class="final-intro-text">
+                                Ahora es momento de volver a jugar.
                             </p>
                         </div>
-            
-                        <div class="final-mission-card">
-                            <h3 class="final-mission-title">🛠️ El Desafío de IA Sostenible</h3>
-                            <div class="final-mission-body">
-                                <p>Tu misión final es competir de nuevo contra tus compañeros construyendo el <strong>sistema de IA más preciso para identificar edificios ineficientes</strong>. Con el clima en juego, cada punto de precisión cuenta.</p>
 
-                                <p>Usa lo que has aprendido sobre IA Verde e ingeniería de características para escalar en la clasificación. ¡Ayúdanos a priorizar dónde se necesita más la rehabilitación!</p>
+                        <div class="final-mission-card">
+                            <h3 class="final-mission-title">🛠️ El desaf&iacute;o final</h3>
+                            <div class="final-mission-body">
+                                <p>Vuelve a la misma competici&oacute;n y construye el modelo m&aacute;s preciso posible para identificar edificios ineficientes. El juego no ha cambiado &mdash; pero t&uacute; s&iacute;.</p>
+
+                                <p>Lleva la precisi&oacute;n de tu modelo al m&aacute;ximo y sube en la clasificaci&oacute;n.</p>
                             </div>
                         </div>
-            
+
                         <div class="final-cta-wrapper">
                             <p class="final-cta-head">
-                                ¿Listo/a para optimizar?
+                                &iquest;Puedes mejorar tu puntuaci&oacute;n?
                             </p>
                             <p class="final-cta-sub">
-                                👇 Haz clic en <b>"Entrar a la Arena"</b> para empezar.
+                                👇 Haz clic en <b>"Entrar en la arena"</b> para empezar.
                             </p>
                         </div>
-            
+
                     </div>
                 </div>
                 """
             )
-            
+
             # Only ONE button needed now
-            intro_next_btn = gr.Button("Entrar a la Arena ▶️", variant="primary", size="lg")
+            intro_next_btn = gr.Button("Entrar en la arena ▶️", variant="primary", size="lg")
 
 
         # Model Building App (Main Interface)
         with gr.Column(visible=False, elem_id="model-step") as model_building_step:
-            gr.Markdown("<h1 style='text-align:center;'>🛠️ Arena de Construcción de Modelos</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>🛠️ Arena de construcción de modelos</h1>")
 
             # Session-based authentication state objects
             # Concurrency Note: These are initialized to None/empty and populated
@@ -3491,7 +3495,7 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
                 with gr.Column(scale=1):
 
                     model_type_radio = gr.Radio(
-                        label="1. Estrategia de Modelo",
+                        label="1. Estrategia de modelo",
                         # Initialize with all possible keys so validation passes even if browser caches a high-rank selection
                         choices=[(MODEL_DISPLAY_MAP.get(k, k), k) for k in MODEL_TYPES.keys()],
                         value=DEFAULT_MODEL,
@@ -3502,7 +3506,7 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
                     gr.Markdown("---") # Separator
 
                     complexity_slider = gr.Slider(
-                        label="2. Profundidad del Modelo (1 = reglas simples, 10 = patrones muy detallados)",
+                        label="2. Profundidad del modelo (1 = reglas simples, 10 = patrones muy detallados)",
                         minimum=1, maximum=3, step=1, value=2,
                         info="Bajo = tu IA aprende reglas simples y seguras. Alto = intenta aprender cada mínimo detalle, pero puede confundirse con el ruido."
                     )
@@ -3510,7 +3514,7 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
                     gr.Markdown("---") # Separator
 
                     feature_set_checkbox = gr.CheckboxGroup(
-                        label="3. Selecciona Ingredientes de Datos",
+                        label="3. Selecciona ingredientes de datos",
                         choices=FEATURE_SET_ALL_OPTIONS,
                         value=DEFAULT_FEATURE_SET,
                         interactive=False,
@@ -3520,7 +3524,7 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
                     gr.Markdown("---") # Separator
 
                     data_size_radio = gr.Radio(
-                        label="4. Tamaño de Datos",
+                        label="4. Tamaño de datos",
                         choices=list(DATA_SIZE_MAP.keys()),
                         value=DEFAULT_DATA_SIZE,
                         interactive=True
@@ -3530,7 +3534,7 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
 
 
                     submit_button = gr.Button(
-                        value="5. 🔬 Construye y Envía Modelo",
+                        value="5. 🔬 Construye y envía modelo",
                         variant="primary",
                         size="lg"
                     )
@@ -3539,7 +3543,7 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
                     gr.HTML(
                         """
                         <div class='leaderboard-box'>
-                            <h3 style='margin-top:0;'>🏆 Clasificación en Vivo</h3>
+                            <h3 style='margin-top:0;'>🏆 Clasificación en vivo</h3>
                             <p style='margin:0;'>Envía un modelo para ver tu posición.</p>
                         </div>
                         """
@@ -3567,7 +3571,7 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
                         visible=False
                     )
                     login_submit = gr.Button(
-                        "Iniciar Sesión y Enviar",
+                        "Iniciar sesión y enviar",
                         variant="primary",
                         visible=False
                     )
@@ -3577,21 +3581,21 @@ def create_model_building_game_es_final_sustainability_app(theme_primary_hue: st
                     )
 
                     with gr.Tabs():
-                        with gr.TabItem("Clasificación por Equipos"):
+                        with gr.TabItem("Clasificación por equipos"):
                             team_leaderboard_display = gr.HTML(
                                 "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:20px;'>Envía un modelo para ver la clasificación por equipos.</p>"
                             )
-                        with gr.TabItem("Clasificación Individual"):
+                        with gr.TabItem("Clasificación individual"):
                             individual_leaderboard_display = gr.HTML(
                                 "<p style='text-align:center; color:var(--secondary-text-color, #6b7280); padding-top:20px;'>Envía un modelo para ver la clasificación individual.</p>"
                             )
 
             # REMOVED: Ethical Reminder HTML Block
-            step_2_next = gr.Button("Finalizar y Reflexionar ▶️", variant="secondary")
+            step_2_next = gr.Button("Finalizar y reflexionar ▶️", variant="secondary")
 
         # Conclusion Step
         with gr.Column(visible=False, elem_id="conclusion-step") as conclusion_step:
-            gr.Markdown("<h1 style='text-align:center;'>✅ Sección Completada</h1>")
+            gr.Markdown("<h1 style='text-align:center;'>✅ Sección completada</h1>")
             final_score_display = gr.HTML(value="<p>Preparando resumen final...</p>")
             step_3_back = gr.Button("◀️ Volver al Experimento")
             proceed_conclusion_btn = gr.Button("VER CONCLUSIÓN →", variant="primary", size="lg")
