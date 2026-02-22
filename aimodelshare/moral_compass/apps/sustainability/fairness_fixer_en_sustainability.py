@@ -1143,7 +1143,7 @@ CLIENT_JS = """
 // =============================================
 
 // --- Global State ---
-window.ctoState = {energy:4200, water:18500000, co2:1680, cost:2800000, greenScore:8, reputation:12};
+window.ctoState = {energy:50400, water:222000000, co2:20160, cost:33600000, greenScore:8, reputation:12};
 window.ctoPrevState = null;
 window.ctoChoices = [];
 window.ctoSelectedChoice = {};
