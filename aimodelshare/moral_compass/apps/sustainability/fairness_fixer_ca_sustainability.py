@@ -947,6 +947,20 @@ css = """
     transform: translateY(-2px);
 }
 
+/* CTO Next button locked state */
+.cto-next-locked {
+    opacity: 0.35 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+}
+.cto-next-hint {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--cto-text-dim);
+    margin-top: 6px;
+    font-style: italic;
+}
+
 /* CTO Feedback tiers */
 .cto-feedback-best { border-color: var(--cto-success) !important; }
 .cto-feedback-good { border-color: var(--cto-warning) !important; }
@@ -1437,8 +1451,55 @@ function ctoConfirmDecision(roundIdx) {
     setTimeout(function() {
         var doneEl = document.getElementById('cto-impact-done-' + roundIdx);
         if (doneEl) { doneEl.style.display = 'block'; }
+        // Enable the Next button now that the choice is confirmed
+        ctoEnableNextBtn(roundIdx);
     }, 5200);
 }
+
+// --- Disable/Enable Next buttons on round pages ---
+function ctoDisableNextBtn(roundIdx) {
+    var wrap = document.getElementById('cto-next-' + roundIdx);
+    if (!wrap) return;
+    var btn = wrap.querySelector('button');
+    if (btn) {
+        btn.disabled = true;
+        btn.classList.add('cto-next-locked');
+    }
+    if (!document.getElementById('cto-next-hint-' + roundIdx)) {
+        var hint = document.createElement('div');
+        hint.id = 'cto-next-hint-' + roundIdx;
+        hint.className = 'cto-next-hint';
+        hint.textContent = 'Tria una opci\u00f3 a dalt i confirma-la per continuar';
+        wrap.parentNode.insertBefore(hint, wrap.nextSibling);
+    }
+}
+function ctoEnableNextBtn(roundIdx) {
+    var wrap = document.getElementById('cto-next-' + roundIdx);
+    if (!wrap) return;
+    var btn = wrap.querySelector('button');
+    if (btn) {
+        btn.disabled = false;
+        btn.classList.remove('cto-next-locked');
+    }
+    var hint = document.getElementById('cto-next-hint-' + roundIdx);
+    if (hint) hint.style.display = 'none';
+}
+// On init, disable Next buttons for all 5 rounds
+(function ctoInitNextGating(){
+    function tryDisable() {
+        var found = 0;
+        for (var r = 1; r <= 5; r++) {
+            var wrap = document.getElementById('cto-next-' + r);
+            if (wrap) {
+                // Only disable if this round hasn't been confirmed yet
+                if (window.ctoChoices.length < r) { ctoDisableNextBtn(r); }
+                found++;
+            }
+        }
+        if (found < 5) setTimeout(tryDisable, 300);
+    }
+    tryDisable();
+})();
 
 // --- Render Results ---
 function ctoRenderResults() {
@@ -1715,7 +1776,11 @@ def create_fairness_fixer_ca_sustainability_app(theme_primary_hue: str = "indigo
                             if i < len(MODULES) - 1
                             else "CONTINUAR A L'ACTIVITAT 8 →"
                         )
-                        btn_next = gr.Button(next_label, variant="primary")
+                        # Add elem_id on round pages (1-5) so JS can disable until choice is confirmed
+                        next_kwargs = {}
+                        if 1 <= i <= 5:
+                            next_kwargs["elem_id"] = f"cto-next-{i}"
+                        btn_next = gr.Button(next_label, variant="primary", **next_kwargs)
 
                     module_ui_elements[i] = (mod_col, btn_prev, btn_next)
 
