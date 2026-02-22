@@ -760,10 +760,10 @@ TEAM_NAME_TRANSLATIONS = {
     "es": {
         "The Climate Guardians": "Los Guardianes del Clima",
         "United Eco-Architects": "Eco-Arquitectos Unidos",
-        "The Energy Detectives": "Detectives de la Energía",
+        "The Energy Detectives": "Los Detectivos de la Energía",
         "The Sustainability League": "La Liga de la Sostenibilidad",
         "Green Future Engineers": "Ingenieros del Futuro Verde",
-        "Zero Carbon Avengers": "Vengadores del Carbono Cero"
+        "Zero Carbon Avengers": "Los Vengadores del Carbono Cero"
     }
 }
 UI_TEAM_LANG = "es"
@@ -1652,9 +1652,9 @@ def perform_inline_login(username_input, password_input):
         
         # Build success message based on whether team is new or existing
         if is_new_team:
-            team_message = f"Se te ha asignado un nuevo equipo: <b>{team_name}</b> 🎉"
+            team_message = f"Se te ha asignado un nuevo equipo: <b>{translate_team_name_for_display(team_name, UI_TEAM_LANG)}</b> 🎉"
         else:
-            team_message = f"¡Bienvenido/a de nuevo! Continúas en el equipo: <b>{team_name}</b> ✅"
+            team_message = f"¡Bienvenido/a de nuevo! Continúas en el equipo: <b>{translate_team_name_for_display(team_name, UI_TEAM_LANG)}</b> ✅"
         
         # Success: hide login form, show success message with team info, enable submit button
         success_html = f"""
@@ -2189,7 +2189,7 @@ def on_initial_load(username, token=None, team_name=""):
     )
 
     # 1. Prepare the Welcome HTML
-    display_team = team_name if team_name else "Tu Equipo"
+    display_team = translate_team_name_for_display(team_name, UI_TEAM_LANG) if team_name else "Tu Equipo"
     
     welcome_html = f"""
     <div style='text-align:center; padding: 30px 20px;'>

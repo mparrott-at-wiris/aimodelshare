@@ -13,6 +13,24 @@ FALLBACK_TABLE_ID = "sustainabilitymcfallback"
 TOTAL_COURSE_TASKS = 10 # Sync with Act6 + Act7
 LOCAL_TEST_SESSION_ID = None
 
+
+# --- Team Name Translations ---
+TEAM_NAME_TRANSLATIONS = {
+    "ca": {
+        "The Climate Guardians": "Els Guardians del Clima",
+        "United Eco-Architects": "Eco-Arquitectes Units",
+        "The Energy Detectives": "Els Detectius de l'Energia",
+        "The Sustainability League": "La Lliga de la Sostenibilitat",
+        "Green Future Engineers": "Enginyers del Futur Verd",
+        "Zero Carbon Avengers": "Els Venjadors del Carboni Zero",
+    },
+}
+UI_TEAM_LANG = "ca"
+
+
+def translate_team_name_for_display(english_name: str, lang: str = "ca") -> str:
+    return TEAM_NAME_TRANSLATIONS.get(lang, {}).get(english_name, english_name)
+
 # ==============================================================================
 # --- BRANDING CONFIGURATION ---
 SHOW_BRANDED_LOGOS = True
@@ -289,7 +307,7 @@ def render_leaderboard_card(data, username, team_name):
             cls = "row-highlight-team" if t["team"] == team_name else "row-normal"
             team_rows += (
                 f"<tr class='{cls}'><td style='padding:8px;text-align:center;'>{i+1}</td>"
-                f"<td style='padding:8px;'>{t['team']}</td>"
+                f"<td style='padding:8px;'>{translate_team_name_for_display(t['team'], UI_TEAM_LANG)}</td>"
                 f"<td style='padding:8px;text-align:right;'>{t['avg']:.3f}</td></tr>"
             )
 
@@ -445,7 +463,7 @@ def generate_html_certificate(name, score, team_name):
                     font-weight: 700;
                 ">{name}</h2>
                 <p style="font-size: 1.1rem; color: {c_dark} !important; margin: 5px 0 0 0;">
-                    Membre de <strong style="color: {c_dark} !important;">{team_name}</strong>
+                    Membre de <strong style="color: {c_dark} !important;">{translate_team_name_for_display(team_name, UI_TEAM_LANG)}</strong>
                 </p>
             </div>
 
