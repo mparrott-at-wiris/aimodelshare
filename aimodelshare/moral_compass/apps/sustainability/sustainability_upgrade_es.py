@@ -263,7 +263,7 @@ def render_top_dashboard(data):
         
         <div style="border-bottom: 2px solid var(--border-color-primary); padding-bottom: 20px; margin-bottom: 25px;">
             <h3 style="margin:0; color: var(--color-accent); font-size: 1.3rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">
-                🎉 Certificación Completada 🎉
+                🎉 Certificación completada 🎉
             </h3>
         </div>
 
@@ -289,7 +289,7 @@ def render_top_dashboard(data):
 
         <div style="margin-top: 30px;">
             <span style="background-color: rgba(16, 185, 129, 0.15); color: var(--color-accent); padding: 10px 24px; border-radius: 99px; font-weight: 700; font-size: 0.95rem; border: 1px solid var(--color-accent); display: inline-flex; align-items: center; gap: 8px;">
-                ✅ Certificado Oficial Preparado
+                ✅ Certificado oficial preparado
             </span>
         </div>
 
@@ -511,14 +511,14 @@ MODULES = [
 # --- MODULE 0: VICTORY DASHBOARD ---
     {
         "id": 0,
-        "title": "Logro Desbloqueado",
+        "title": "Logro desbloqueado",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
                     <div style="text-align:center; margin-bottom:20px;">
                         <div style="font-size:3rem;">🏆</div>
                         <h2 class="slide-title" style="margin-top:5px; color:var(--color-primary);">
-                            Logro Desbloqueado
+                            Logro desbloqueado
                         </h2>
                         <p style="font-size:1.1rem; max-width:800px; margin:0 auto; color: var(--body-text-color);">
                             Has completado con éxito el protocolo de IA Verde.
@@ -544,7 +544,7 @@ MODULES = [
     # --- MODULE 1: THE ENGINEERING LOG ---
     {
         "id": 1,
-        "title": "Registro de Ingeniería",
+        "title": "Registro de ingeniería",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
@@ -582,11 +582,11 @@ MODULES = [
     # --- MODULE 2: CERTIFICATE GENERATOR ---
     {
         "id": 2,
-        "title": "Certificación Oficial",
+        "title": "Certificación oficial",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
-                    <h2 class="slide-title" style="text-align:center; color: var(--color-primary);">🎓 Reclama Tus Credenciales</h2>
+                    <h2 class="slide-title" style="text-align:center; color: var(--color-primary);">🎓 Reclama tus credenciales</h2>
                     <p style="text-align:center; margin-bottom:20px; color: var(--body-text-color);">
                         Introduce tu nombre exactamente como quieres que aparezca en tu certificado oficial de la <strong>Iniciativa de IA Verde</strong>.
                     </p>
@@ -605,13 +605,13 @@ MODULES = [
     # --- MODULE 3: THE FINAL TRANSITION ---
     {
         "id": 3,
-        "title": "El Desafío Final",
+        "title": "El desafío final",
         "html": """
             <div class="scenario-box">
                 <div class="slide-body">
                     <div style="text-align:center;">
                         <div style="font-size:3rem;">🚀</div>
-                        <h2 class="slide-title" style="margin-top:10px;">La Frontera Final</h2>
+                        <h2 class="slide-title" style="margin-top:10px;">La frontera final</h2>
                     </div>
 
                     <p style="font-size:1.1rem; text-align:center; max-width:800px; margin:0 auto 25px auto; opacity: 0.9;">
@@ -621,7 +621,7 @@ MODULES = [
                     </p>
 
                     <div class="ai-risk-container" style="background: var(--background-fill-secondary); border: 2px solid var(--color-primary);">
-                        <h3 style="margin-top:0; color: var(--color-primary);">🏆 La Competición de Precisión</h3>
+                        <h3 style="margin-top:0; color: var(--color-primary);">🏆 La competición de precisión</h3>
                         <p style="font-size:1.05rem; line-height:1.5; opacity: 0.9;">
                             Tu misión final es competir contra tus compañeros para construir el <strong>modelo más preciso posible</strong>.
                             <br><br>
@@ -750,14 +750,14 @@ def create_sustainability_upgrade_es_app(theme_primary_hue: str = "indigo"):
 
         # --- 1. LOADING STATE ---
         with gr.Column(visible=True, elem_id="app-loader") as loader_col:
-            gr.HTML("<div style='text-align:center; padding:100px;'><h2>🏆 Verificando Credenciales...</h2></div>")
+            gr.HTML("<div style='text-align:center; padding:100px;'><h2>🏆 Verificando credenciales...</h2></div>")
 
         # --- 2. AUTH FAILED STATE ---
         with gr.Column(visible=False, elem_id="auth-fail") as auth_fail_col:
             gr.HTML(
                 """
                 <div style='text-align:center; padding:100px; color: #EF4444;'>
-                    <h2>🚫 Autenticación Fallida</h2>
+                    <h2>🚫 Autenticación fallida</h2>
                     <p style='font-size: 1.2em;'>No pudimos verificar tu sesión.</p>
                     <p>Por favor, vuelve a la página de inicio de sesión e inténtalo de nuevo.</p>
                     <br/>
@@ -789,9 +789,9 @@ def create_sustainability_upgrade_es_app(theme_primary_hue: str = "indigo"):
                     # --- MODULE 2 SPECIFIC: INPUTS ---
                     # Inputs for the certificate generator usually go above the buttons
                     if i == 2:
-                        name_input = gr.Textbox(label="Nombre Completo para el Certificado", placeholder="p. ej. María García")
-                        gen_btn = gr.Button("🎓 Generar Tu Certificado", variant="primary")
-                        cert_display = gr.HTML(label="Certificado Oficial", visible=False)
+                        name_input = gr.Textbox(label="Nombre completo para el certificado", placeholder="p. ej. María García")
+                        gen_btn = gr.Button("🎓 Generar tu certificado", variant="primary")
+                        cert_display = gr.HTML(label="Certificado oficial", visible=False)
                         share_row = gr.HTML(visible=False)
 
                         gen_btn.click(
