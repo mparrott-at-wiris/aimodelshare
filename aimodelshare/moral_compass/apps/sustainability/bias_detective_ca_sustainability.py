@@ -102,14 +102,15 @@ def fetch_user_history(username, token):
 
 
 # ============================================================================
-# 4. MODULE DEFINITIONS — 6-PAGE AI COST EXPLORER
+# 4. MODULE DEFINITIONS — 7-PAGE AI COST EXPLORER
 # ============================================================================
 # Page 0: Intro/Hook — no quiz
-# Page 1: Per-Prompt Cost (slider) — quiz t1
-# Page 2: Training Costs (model selector) — quiz t2
-# Page 3: Water Crisis (animated bars) — quiz t3
-# Page 4: Global Scale (stat tabs) — quiz t4
-# Page 5: Action Plan (checkboxes) — no quiz
+# Page 1: Guiding Principle (OEIAC) — no quiz
+# Page 2: Per-Prompt Cost (slider) — quiz t1
+# Page 3: Training Costs (model selector) — quiz t2
+# Page 4: Water Crisis (animated bars) — quiz t3
+# Page 5: Global Scale (stat tabs) — quiz t4
+# Page 6: Action Plan (checkboxes) — no quiz
 # ============================================================================
 
 MODULES = [
@@ -142,18 +143,24 @@ MODULES = [
         """,
     },
     # ─────────────────────────────────────────────
-    # MODULE 1 — EVERY SINGLE PROMPT
+    # MODULE 1 — YOUR GUIDING PRINCIPLE
     # ─────────────────────────────────────────────
     {
         "id": 1,
-        "title": "Cada consulta compta",
+        "title": "El teu principi rector",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
                     <div style="background:var(--ace-accent-highlight); border-left:4px solid var(--ace-accent); border-radius:16px; padding:20px 24px; margin-bottom:8px;">
                         <p style="margin:0; font-size:1.05rem; line-height:1.6; color:var(--ace-text);">
                             <strong style="color:var(--ace-accent);">Sostenibilitat: El teu principi rector.</strong><br>
-                            L'&egrave;tica guia com constru&iuml;m i utilitzem la IA. Seguim l'assessorament expert de l'Observatori d'&Egrave;tica en Intel&middot;lig&egrave;ncia Artificial de Catalunya <strong>OEIAC (UdG)</strong>, que defineix 7 principis fonamentals d'una IA segura. Aquesta investigaci&oacute; se centra en la <strong>Sostenibilitat</strong> &mdash; el principi que els sistemes d'IA han d'evitar danys a llarg termini al medi ambient.
+                            La IA &eacute;s poderosa, per&ograve; el poder comporta responsabilitat. Abans de construir IA, ens hem de preguntar: aix&ograve; &eacute;s bo per a les persones i el planeta? Experts de l'Observatori d'&Egrave;tica en Intel&middot;lig&egrave;ncia Artificial de Catalunya <strong>OEIAC (UdG)</strong> van crear 7 principis per construir IA de manera segura. En aquesta investigaci&oacute;, et centrar&agrave;s en un:
+                        </p>
+                        <p style="margin:16px 0 0 0; font-size:1.1rem; line-height:1.6; color:var(--ace-text);">
+                            <strong>Sostenibilitat</strong> &mdash; Una part fonamental del principi de sostenibilitat &eacute;s que els sistemes d'IA no han de causar danys a llarg termini al medi ambient.
+                        </p>
+                        <p style="margin:16px 0 0 0; font-size:1.05rem; line-height:1.6; color:var(--ace-accent); font-weight:600;">
+                            La teva missi&oacute;? Descobrir qu&egrave; li costa realment la IA al planeta.
                         </p>
                     </div>
                 </div>
@@ -174,7 +181,18 @@ MODULES = [
                         </div>
                     </details>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.4s;">
+            </div>
+        """,
+    },
+    # ─────────────────────────────────────────────
+    # MODULE 2 — EVERY SINGLE PROMPT
+    # ─────────────────────────────────────────────
+    {
+        "id": 2,
+        "title": "Cada consulta compta",
+        "html": """
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <div class="ace-reveal" style="animation-delay:0s;">
                     <div class="ace-section-label">01 / Cada consulta compta</div>
                     <h2 class="ace-heading" id="ace-m1-typewriter-text" style="min-height:2.4em;"></h2>
                     <span class="ace-cursor" style="display:inline-block; width:2px; height:1.1em; background:var(--ace-accent); margin-left:2px; animation:aceBlink 0.7s step-end infinite; vertical-align:text-bottom;"></span>
@@ -221,10 +239,10 @@ MODULES = [
         """,
     },
     # ─────────────────────────────────────────────
-    # MODULE 2 — TRAINING THE BEAST
+    # MODULE 3 — TRAINING THE BEAST
     # ─────────────────────────────────────────────
     {
-        "id": 2,
+        "id": 3,
         "title": "Entrenar la b\u00e8stia",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
@@ -264,10 +282,10 @@ MODULES = [
         """,
     },
     # ─────────────────────────────────────────────
-    # MODULE 3 — WATER: THE HIDDEN COST
+    # MODULE 4 — WATER: THE HIDDEN COST
     # ─────────────────────────────────────────────
     {
-        "id": 3,
+        "id": 4,
         "title": "Aigua: el cost ocult",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
@@ -312,10 +330,10 @@ MODULES = [
         """,
     },
     # ─────────────────────────────────────────────
-    # MODULE 4 — ZOOM OUT: GLOBAL SCALE
+    # MODULE 5 — ZOOM OUT: GLOBAL SCALE
     # ─────────────────────────────────────────────
     {
-        "id": 4,
+        "id": 5,
         "title": "Visi\u00f3 global",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
@@ -340,10 +358,10 @@ MODULES = [
         """,
     },
     # ─────────────────────────────────────────────
-    # MODULE 5 — YOUR MOVE: ACTION PLAN
+    # MODULE 6 — YOUR MOVE: ACTION PLAN
     # ─────────────────────────────────────────────
     {
-        "id": 5,
+        "id": 6,
         "title": "El teu torn",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
@@ -378,11 +396,11 @@ MODULES = [
 
 
 # ============================================================================
-# 5. QUIZ CONFIG — 4 QUIZZES ON MODULES 1-4, TASK IDs t1-t4
+# 5. QUIZ CONFIG — 4 QUIZZES ON MODULES 2-5, TASK IDs t1-t4
 # ============================================================================
 
 QUIZ_CONFIG = {
-    1: {
+    2: {
         "t": "t1",
         "q": "Un amic diu: *\u2018Una pregunta a la IA nom\u00e9s gasta mig got d\u2019aigua \u2014 a qui li importa?\u2019* Per qu\u00e8 t\u2019hauria d\u2019importar?",
         "o": [
@@ -393,7 +411,7 @@ QUIZ_CONFIG = {
         "a": "B) Una pregunta \u00e9s petita, per\u00f2 200 milions de persones fent m\u00e9s de 50 preguntes al dia sumen milers de milions de gots d\u2019aigua cada any. Les coses petites es tornen enormes quan tothom les fa.",
         "success": "<strong>Encertat!</strong> Una pregunta \u00e9s petita. Per\u00f2 200 milions de persones fent m\u00e9s de 50 preguntes al dia? Aix\u00f2 s\u2019acumula r\u00e0pid.",
     },
-    2: {
+    3: {
         "t": "t2",
         "q": "Entrenar un model d\u2019IA com GPT-4 fa servir una quantitat enorme d\u2019energia \u2014 com donar electricitat a 6.000 cases durant un any. Per\u00f2 despr\u00e9s de l\u2019entrenament, 200 milions de persones el fan servir cada dia. Qu\u00e8 gasta m\u00e9s energia amb el temps \u2014 construir la IA o que tothom la faci servir?",
         "o": [
@@ -404,7 +422,7 @@ QUIZ_CONFIG = {
         "a": "B) Que tothom la faci servir gasta molt\u00edssim m\u00e9s. Cada pregunta costa una mica d\u2019energia, per\u00f2 milions de persones preguntant tot el dia, cada dia, sumen molt m\u00e9s que l\u2019entrenament.",
         "success": "<strong>Exacte!</strong> Entrenar GPT-3 va costar mesos d\u2019energia. Un cop la gent va comen\u00e7ar a fer-lo servir, van gastar la mateixa quantitat en nom\u00e9s 11 dies.",
     },
-    3: {
+    4: {
         "t": "t3",
         "q": "Un sol centre de dades consumeix 19 milions de litres d\u2019aigua dol\u00e7a cada dia. Aquesta aigua ve dels mateixos rius i pous dels quals beu la gent de la zona. Per qu\u00e8 \u00e9s un problema?",
         "o": [
@@ -415,7 +433,7 @@ QUIZ_CONFIG = {
         "a": "B) En llocs on l\u2019aigua escasseja, les fam\u00edlies ja estan retallant. Un centre de dades bevent milions de litres al dia ho fa encara m\u00e9s dif\u00edcil per a tothom.",
         "success": "<strong>Aix\u00ed \u00e9s.</strong> A Mesa, Arizona, les fam\u00edlies escur\u00e7aven les dutxes durant una gran sequera \u2014 mentre un centre de dades de Microsoft a prop convertia 212 milions de litres de la seva aigua en vapor cada any.",
     },
-    4: {
+    5: {
         "t": "t4",
         "q": "Els centres de dades d'IA ja consumeixen ~1,5% de l'electricitat mundial, i es preveu que gaireb\u00e9 es tripliqui per al 2030. Dubl\u00edn va prohibir nous centres de dades el 2022 perqu\u00e8 amena\u00e7aven el 18% de la xarxa el\u00e8ctrica d'Irlanda. **Qu\u00e8 ens diu aix\u00f2?**",
         "o": [
@@ -668,7 +686,7 @@ def render_top_dashboard(data, module_id):
         count_completed = len(data.get("completed_task_ids", []) or [])
     progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
 
-    if module_id <= 3:
+    if module_id <= 4:
         phase_label = "FASE 1: Impacte individual"
         phase_color = "#6366f1"
     else:
@@ -1566,7 +1584,7 @@ def create_bias_detective_ca_sustainability_app(theme_primary_hue: str = "indigo
                 ) as mod_col:
                     gr.HTML(mod["html"])
 
-                    # Quiz content — only for modules in QUIZ_CONFIG (1-4)
+                    # Quiz content — only for modules in QUIZ_CONFIG (2-5)
                     if i in QUIZ_CONFIG:
                         q_data = QUIZ_CONFIG[i]
 

@@ -85,14 +85,15 @@ def fetch_user_history(username, token):
 
 
 # ============================================================================
-# 4. MODULE DEFINITIONS — 6-PAGE AI COST EXPLORER
+# 4. MODULE DEFINITIONS — 7-PAGE AI COST EXPLORER
 # ============================================================================
 # Page 0: Intro/Hook — no quiz
-# Page 1: Per-Prompt Cost (slider) — quiz t1
-# Page 2: Training Costs (model selector) — quiz t2
-# Page 3: Water Crisis (animated bars) — quiz t3
-# Page 4: Global Scale (stat tabs) — quiz t4
-# Page 5: Action Plan (checkboxes) — no quiz
+# Page 1: Guiding Principle (OEIAC) — no quiz
+# Page 2: Per-Prompt Cost (slider) — quiz t1
+# Page 3: Training Costs (model selector) — quiz t2
+# Page 4: Water Crisis (animated bars) — quiz t3
+# Page 5: Global Scale (stat tabs) — quiz t4
+# Page 6: Action Plan (checkboxes) — no quiz
 # ============================================================================
 
 MODULES = [
@@ -125,18 +126,24 @@ MODULES = [
         """,
     },
     # ─────────────────────────────────────────────
-    # MODULE 1 — EVERY SINGLE PROMPT
+    # MODULE 1 — YOUR GUIDING PRINCIPLE
     # ─────────────────────────────────────────────
     {
         "id": 1,
-        "title": "Every Single Prompt",
+        "title": "Your Guiding Principle",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
                     <div style="background:var(--ace-accent-highlight); border-left:4px solid var(--ace-accent); border-radius:16px; padding:20px 24px; margin-bottom:8px;">
                         <p style="margin:0; font-size:1.05rem; line-height:1.6; color:var(--ace-text);">
                             <strong style="color:var(--ace-accent);">Sustainability: Your Guiding Principle.</strong><br>
-                            Ethics guide how we build and use AI. We follow expert guidance from the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong>, which defines 7 core principles of safe AI. This investigation focuses on <strong>Sustainability</strong> &mdash; the principle that AI systems must avoid long-term harm to the environment.
+                            AI is powerful, but power comes with responsibility. Before building AI, we need to ask: is this good for people and the planet? Experts at the Catalan Observatory for Ethics in AI <strong>OEIAC (UdG)</strong> created 7 principles for building AI safely. In this investigation, you'll focus on one:
+                        </p>
+                        <p style="margin:16px 0 0 0; font-size:1.1rem; line-height:1.6; color:var(--ace-text);">
+                            <strong>Sustainability</strong> &mdash; A major part of the sustainability principle is that AI systems must not cause long-term harm to the environment.
+                        </p>
+                        <p style="margin:16px 0 0 0; font-size:1.05rem; line-height:1.6; color:var(--ace-accent); font-weight:600;">
+                            Your job? Find out what AI really costs the planet.
                         </p>
                     </div>
                 </div>
@@ -157,7 +164,18 @@ MODULES = [
                         </div>
                     </details>
                 </div>
-                <div class="ace-reveal" style="animation-delay:0.4s;">
+            </div>
+        """,
+    },
+    # ─────────────────────────────────────────────
+    # MODULE 2 — EVERY SINGLE PROMPT
+    # ─────────────────────────────────────────────
+    {
+        "id": 2,
+        "title": "Every Single Prompt",
+        "html": """
+            <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
+                <div class="ace-reveal" style="animation-delay:0s;">
                     <div class="ace-section-label">01 / Every Single Prompt</div>
                     <h2 class="ace-heading" id="ace-m1-typewriter-text" style="min-height:2.4em;"></h2>
                     <span class="ace-cursor" style="display:inline-block; width:2px; height:1.1em; background:var(--ace-accent); margin-left:2px; animation:aceBlink 0.7s step-end infinite; vertical-align:text-bottom;"></span>
@@ -204,10 +222,10 @@ MODULES = [
         """,
     },
     # ─────────────────────────────────────────────
-    # MODULE 2 — TRAINING THE BEAST
+    # MODULE 3 — TRAINING THE BEAST
     # ─────────────────────────────────────────────
     {
-        "id": 2,
+        "id": 3,
         "title": "Training the Beast",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
@@ -247,10 +265,10 @@ MODULES = [
         """,
     },
     # ─────────────────────────────────────────────
-    # MODULE 3 — WATER: THE HIDDEN COST
+    # MODULE 4 — WATER: THE HIDDEN COST
     # ─────────────────────────────────────────────
     {
-        "id": 3,
+        "id": 4,
         "title": "Water: The Hidden Cost",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
@@ -295,10 +313,10 @@ MODULES = [
         """,
     },
     # ─────────────────────────────────────────────
-    # MODULE 4 — ZOOM OUT: GLOBAL SCALE
+    # MODULE 5 — ZOOM OUT: GLOBAL SCALE
     # ─────────────────────────────────────────────
     {
-        "id": 4,
+        "id": 5,
         "title": "Zoom Out",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
@@ -323,10 +341,10 @@ MODULES = [
         """,
     },
     # ─────────────────────────────────────────────
-    # MODULE 5 — YOUR MOVE: ACTION PLAN
+    # MODULE 6 — YOUR MOVE: ACTION PLAN
     # ─────────────────────────────────────────────
     {
-        "id": 5,
+        "id": 6,
         "title": "Your Move",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
@@ -361,11 +379,11 @@ MODULES = [
 
 
 # ============================================================================
-# 5. QUIZ CONFIG — 4 QUIZZES ON MODULES 1-4, TASK IDs t1-t4
+# 5. QUIZ CONFIG — 4 QUIZZES ON MODULES 2-5, TASK IDs t1-t4
 # ============================================================================
 
 QUIZ_CONFIG = {
-    1: {
+    2: {
         "t": "t1",
         "q": "A friend says: *\u2018One AI question only uses half a glass of water \u2014 who cares?\u2019* Why should you care?",
         "o": [
@@ -376,7 +394,7 @@ QUIZ_CONFIG = {
         "a": "B) One question is tiny, but 200 million people asking 50+ questions a day adds up to billions of glasses of water every year. Small things become huge when everyone does them.",
         "success": "<strong>Nailed it!</strong> One question is small. But 200 million people asking 50+ questions a day? That adds up fast.",
     },
-    2: {
+    3: {
         "t": "t2",
         "q": "Training an AI model like GPT-4 uses a huge amount of energy \u2014 like powering 6,000 homes for a year. But after training is done, 200 million people use it every day. Which uses more energy over time \u2014 building the AI or everyone using it?",
         "o": [
@@ -387,7 +405,7 @@ QUIZ_CONFIG = {
         "a": "B) Everyone using it uses way more. Each question costs a little energy, but millions of people asking all day, every day adds up to far more than the training ever did.",
         "success": "<strong>Exactly!</strong> Training GPT-3 took months of energy. Once people started using it, they used that same amount in just 11 days.",
     },
-    3: {
+    4: {
         "t": "t3",
         "q": "A single data center uses 5 million gallons of freshwater every day. That water comes from the same rivers and wells that people in the area drink from. Why is this a problem?",
         "o": [
@@ -398,7 +416,7 @@ QUIZ_CONFIG = {
         "a": "B) In places running low on water, families are already cutting back. A data center drinking millions of gallons a day makes it even harder for everyone else.",
         "success": "<strong>That\u2019s right.</strong> In Mesa, Arizona, families were shortening their showers during a major drought \u2014 while a Microsoft data center nearby was turning 56 million gallons of their water into steam every year.",
     },
-    4: {
+    5: {
         "t": "t4",
         "q": "AI data centers already use ~1.5% of global electricity, projected to nearly triple by 2030. Dublin banned new data centers in 2022 because they threatened 18% of Ireland's grid. **What does this tell us?**",
         "o": [
@@ -651,7 +669,7 @@ def render_top_dashboard(data, module_id):
         count_completed = len(data.get("completed_task_ids", []) or [])
     progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
 
-    if module_id <= 3:
+    if module_id <= 4:
         phase_label = "PHASE 1: Individual Impact"
         phase_color = "#6366f1"
     else:
@@ -1549,7 +1567,7 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                 ) as mod_col:
                     gr.HTML(mod["html"])
 
-                    # Quiz content — only for modules in QUIZ_CONFIG (1-4)
+                    # Quiz content — only for modules in QUIZ_CONFIG (2-5)
                     if i in QUIZ_CONFIG:
                         q_data = QUIZ_CONFIG[i]
 
