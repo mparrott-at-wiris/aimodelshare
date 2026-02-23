@@ -333,7 +333,7 @@ MODULES = [
             emoji="\U0001f4cd",
             title="La visi\u00f3 global",
             brief="Abans d&#39;aprovar la construcci\u00f3 de NovaMind a la teva ciutat, demanes veure el seu pla per construir m\u00e9s centres de dades pel m\u00f3n. On una empresa posa els seus ALTRES centres de dades et diu tot sobre si es prenen seriosament la protecci\u00f3 del medi ambient &mdash; o nom\u00e9s li diuen a la teva ciutat el que vol sentir.",
-            question="NovaMind t\u00e9 plans per a 3 centres de dades m\u00e9s. On els construiran?",
+            question="NovaMind t\u00e9 plans per a 3 centres de dades m\u00e9s. Aqu\u00ed tens les tres possibles ubicacions:",
             choices=[
                 {"icon": "\U0001f30d", "label": "Ubicacions fredes i netes", "desc": "Les seves 3 properes construccions s\u00f3n a Isl\u00e0ndia, Su\u00e8cia i Quebec &mdash; tots amb climes gla\u00e7ats i m\u00e9s del 90% d&#39;energia neta. Clarament es prenen seriosament la protecci\u00f3 del medi ambient a tot arreu, no nom\u00e9s aqu\u00ed."},
                 {"icon": "\u2696\ufe0f", "label": "Una estrat\u00e8gia mixta", "desc": "Un a Oregon (energia neta dels rius), un a Texas (barat per\u00f2 xarxa el\u00e8ctrica bruta), un a Irlanda (fresc per\u00f2 sense prou electricitat). Ni genial ni terrible &mdash; una mica d&#39;esfor\u00e7, alguns dreceres."},
@@ -419,14 +419,14 @@ QUIZ_CONFIG = {
     },
     4: {
         "t": "t8",
-        "q": "NovaMind et mostra el seu pla per construir m\u00e9s centres de dades pel m\u00f3n. Els 3 nous s\u00f3n en regions caloroses i barates amb xarxes que cremen gas i carb\u00f3. Un dels caps de NovaMind diu: *\u2018Ens estalviem milions en costos de terreny!\u2019* Quin \u00e9s el veritable problema?",
+        "q": "NovaMind promet a la teva ciutat que seran verds. Per\u00f2 els seus altres 3 centres de dades s\u00f3n tots en llocs calorosos i barats que cremen gas i carb\u00f3. Qu\u00e8 et diu aix\u00f2?",
         "o": [
-            "A) Les ubicacions caloroses estan b\u00e9 sempre que NovaMind compri compensacions de carboni (pagar a altres per plantar arbres) per equilibrar la refrigeraci\u00f3 extra i l\u2019energia bruta.",
-            "B) El terreny barat amaga costos enormes \u2014 3 vegades m\u00e9s refrigeraci\u00f3, xarxes de gas que anul\u00b7len el progr\u00e9s verd, i no hi ha prou aigua. Si retallen despeses a tot arreu, les promeses que van fer a la teva ciutat probablement s\u00f3n nom\u00e9s un truc de m\u00e0rqueting.",
-            "C) L\u2019\u00fanic problema real \u00e9s la imatge p\u00fablica \u2014 l\u2019impacte ambiental real \u00e9s m\u00e9s o menys el mateix independentment de la ubicaci\u00f3.",
+            "A) Les seves promeses verdes a la teva ciutat probablement s\u00f3n falses \u2014 si retallen despeses a tot arreu, per qu\u00e8 la teva ciutat seria diferent?",
+            "B) No importa on siguin els altres centres de dades \u2014 cadascun \u00e9s independent.",
+            "C) Les ubicacions caloroses estan b\u00e9 sempre que paguin a alg\u00fa per plantar arbres.",
         ],
-        "a": "B) El terreny barat amaga costos enormes \u2014 3 vegades m\u00e9s refrigeraci\u00f3, xarxes de gas que anul\u00b7len el progr\u00e9s verd, i no hi ha prou aigua. Si retallen despeses a tot arreu, les promeses que van fer a la teva ciutat probablement s\u00f3n nom\u00e9s un truc de m\u00e0rqueting.",
-        "success": "<strong>Patr\u00f3 detectat!</strong> On una empresa construeix els seus ALTRES centres de dades revela el que realment els importa. Meta i Google van triar Escandin\u00e0via per una ra\u00f3 \u2014 refrigeraci\u00f3 gratis + xarxes netes.",
+        "a": "A) Les seves promeses verdes a la teva ciutat probablement s\u00f3n falses \u2014 si retallen despeses a tot arreu, per qu\u00e8 la teva ciutat seria diferent?",
+        "success": "<strong>Encertat!</strong> El patr\u00f3 d\u2019una empresa diu la veritat. Meta i Google van triar llocs freds amb energia neta per alguna cosa \u2014 no nom\u00e9s ho deien, ho complien.",
     },
     5: {
         "t": "t9",

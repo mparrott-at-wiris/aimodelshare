@@ -316,7 +316,7 @@ MODULES = [
             emoji="\U0001f4cd",
             title="The Bigger Picture",
             brief="Before you approve NovaMind&#39;s build in your city, you ask to see their plan to build more data centers around the world. Where a company puts its OTHER data centers tells you everything about whether they&#39;re serious about protecting the environment &mdash; or just telling your city what it wants to hear.",
-            question="NovaMind has plans for 3 more data centers. Where are they building them?",
+            question="NovaMind has plans for 3 more data centers. Here are their three potential locations:",
             choices=[
                 {"icon": "\U0001f30d", "label": "Cold & Clean Locations", "desc": "Their next 3 builds are in Iceland, Sweden, and Quebec &mdash; all with freezing climates and 90%+ clean energy. They&#39;re clearly serious about protecting the environment everywhere, not just here."},
                 {"icon": "\u2696\ufe0f", "label": "A Mixed Strategy", "desc": "One in Oregon (clean energy from rivers), one in Texas (cheap but dirty grid), one in Ireland (cool but running out of electricity). Not great, not terrible &mdash; some effort, some shortcuts."},
@@ -402,14 +402,14 @@ QUIZ_CONFIG = {
     },
     4: {
         "t": "t8",
-        "q": "NovaMind shows you their plan to build more data centers around the world. All 3 new ones are in hot, cheap regions with power grids that burn gas and coal. One of NovaMind\u2019s bosses says: *\u2018We save millions on land costs!\u2019* What\u2019s the real problem?",
+        "q": "NovaMind promises your city they\u2019ll be green. But their 3 other data centers are all in hot, cheap places that burn gas and coal. What does that tell you?",
         "o": [
-            "A) Hot locations are fine as long as NovaMind buys carbon offsets (paying someone else to plant trees) to balance out the extra cooling and dirty energy.",
-            "B) Cheap land hides massive costs \u2014 3x cooling, gas grids that cancel green progress, and not enough water. If they cut corners everywhere else, the promises they made to your city are probably just a marketing trick.",
-            "C) The only real issue is public image \u2014 the actual environmental impact is about the same regardless of location.",
+            "A) Their green promises to your city are probably fake \u2014 if they cut corners everywhere else, why would your city be different?",
+            "B) It doesn\u2019t matter where the other data centers are \u2014 each one is separate.",
+            "C) Hot locations are fine as long as they pay someone to plant trees.",
         ],
-        "a": "B) Cheap land hides massive costs \u2014 3x cooling, gas grids that cancel green progress, and not enough water. If they cut corners everywhere else, the promises they made to your city are probably just a marketing trick.",
-        "success": "<strong>Pattern Spotted!</strong> Where a company builds its OTHER data centers reveals what they really care about. Meta and Google chose Scandinavia for a reason \u2014 free cooling + clean grids.",
+        "a": "A) Their green promises to your city are probably fake \u2014 if they cut corners everywhere else, why would your city be different?",
+        "success": "<strong>Spot on!</strong> A company\u2019s pattern tells the truth. Meta and Google chose cold places with clean energy for a reason \u2014 they weren\u2019t just saying it, they meant it.",
     },
     5: {
         "t": "t9",

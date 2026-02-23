@@ -333,7 +333,7 @@ MODULES = [
             emoji="\U0001f4cd",
             title="La visi\u00f3n global",
             brief="Antes de aprobar la construcci\u00f3n de NovaMind en tu ciudad, pides ver su plan para construir m\u00e1s centros de datos por el mundo. D\u00f3nde una empresa pone sus OTROS centros de datos te dice todo sobre si se toman en serio la protecci\u00f3n del medio ambiente &mdash; o solo le dicen a tu ciudad lo que quiere o\u00edr.",
-            question="\u00bfNovaMind tiene planes para 3 centros de datos m\u00e1s. D\u00f3nde los van a construir?",
+            question="NovaMind tiene planes para 3 centros de datos m\u00e1s. Aqu\u00ed est\u00e1n sus tres posibles ubicaciones:",
             choices=[
                 {"icon": "\U0001f30d", "label": "Ubicaciones fr\u00edas y limpias", "desc": "Sus pr\u00f3ximas 3 construcciones son en Islandia, Suecia y Quebec &mdash; todos con climas helados y m\u00e1s del 90% de energ\u00eda limpia. Claramente se toman en serio la protecci\u00f3n del medio ambiente en todas partes, no solo aqu\u00ed."},
                 {"icon": "\u2696\ufe0f", "label": "Una estrategia mixta", "desc": "Uno en Oreg\u00f3n (energ\u00eda limpia de los r\u00edos), uno en Texas (barato pero red el\u00e9ctrica sucia), uno en Irlanda (fresco pero sin suficiente electricidad). Ni genial ni terrible &mdash; algo de esfuerzo, algunos atajos."},
@@ -419,14 +419,14 @@ QUIZ_CONFIG = {
     },
     4: {
         "t": "t8",
-        "q": "NovaMind te muestra su plan para construir m\u00e1s centros de datos por el mundo. Los 3 nuevos est\u00e1n en regiones calurosas y baratas con redes que queman gas y carb\u00f3n. Uno de los jefes de NovaMind dice: *\u2018\u00a1Nos ahorramos millones en costes de terreno!\u2019* \u00bfCu\u00e1l es el verdadero problema?",
+        "q": "NovaMind le promete a tu ciudad que ser\u00e1n verdes. Pero sus otros 3 centros de datos est\u00e1n todos en lugares calurosos y baratos que queman gas y carb\u00f3n. \u00bfQu\u00e9 te dice eso?",
         "o": [
-            "A) Las ubicaciones calurosas est\u00e1n bien siempre que NovaMind compre compensaciones de carbono (pagar a otros para plantar \u00e1rboles) para equilibrar la refrigeraci\u00f3n extra y la energ\u00eda sucia.",
-            "B) El terreno barato esconde costes enormes \u2014 3 veces m\u00e1s refrigeraci\u00f3n, redes de gas que anulan el progreso verde, y no hay suficiente agua. Si recortan gastos en todas partes, las promesas que hicieron a tu ciudad probablemente son solo un truco de marketing.",
-            "C) El \u00fanico problema real es la imagen p\u00fablica \u2014 el impacto ambiental real es m\u00e1s o menos el mismo independientemente de la ubicaci\u00f3n.",
+            "A) Sus promesas verdes a tu ciudad probablemente son falsas \u2014 si recortan gastos en todas partes, \u00bfpor qu\u00e9 tu ciudad ser\u00eda diferente?",
+            "B) No importa d\u00f3nde est\u00e9n los otros centros de datos \u2014 cada uno es independiente.",
+            "C) Las ubicaciones calurosas est\u00e1n bien siempre que paguen a alguien para plantar \u00e1rboles.",
         ],
-        "a": "B) El terreno barato esconde costes enormes \u2014 3 veces m\u00e1s refrigeraci\u00f3n, redes de gas que anulan el progreso verde, y no hay suficiente agua. Si recortan gastos en todas partes, las promesas que hicieron a tu ciudad probablemente son solo un truco de marketing.",
-        "success": "<strong>\u00a1Patr\u00f3n detectado!</strong> D\u00f3nde una empresa construye sus OTROS centros de datos revela lo que realmente les importa. Meta y Google eligieron Escandinavia por una raz\u00f3n \u2014 refrigeraci\u00f3n gratis + redes limpias.",
+        "a": "A) Sus promesas verdes a tu ciudad probablemente son falsas \u2014 si recortan gastos en todas partes, \u00bfpor qu\u00e9 tu ciudad ser\u00eda diferente?",
+        "success": "<strong>\u00a1Acertaste!</strong> El patr\u00f3n de una empresa dice la verdad. Meta y Google eligieron lugares fr\u00edos con energ\u00eda limpia por algo \u2014 no solo lo dec\u00edan, lo cumpl\u00edan.",
     },
     5: {
         "t": "t9",
