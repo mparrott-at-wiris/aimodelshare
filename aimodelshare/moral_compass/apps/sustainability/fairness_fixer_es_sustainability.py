@@ -160,7 +160,7 @@ def _round_html(round_idx, emoji, title, brief, question, choices):
                     <span style="font-size:0.875rem; color:var(--cto-text-dim);">NovaMind AI &mdash; Tu Revisi&oacute;n</span>
                 </div>
                 <div class="cto-stats-wrapper">
-                    <div class="cto-stats-header">&#127961;&#65039; La Contaminaci&oacute;n de Tu Ciudad</div>
+                    <div class="cto-stats-header">&#127961;&#65039; La contaminaci&oacute;n de tu ciudad</div>
                     <div id="cto-stats-{round_idx}" class="cto-stats-grid"></div>
                 </div>
                 <div style="display:flex; gap:6px; margin-top:16px;">
@@ -173,7 +173,7 @@ def _round_html(round_idx, emoji, title, brief, question, choices):
                     <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
                         <span style="font-size:2rem;">{emoji}</span>
                         <div>
-                            <div style="font-size:0.75rem; color:var(--cto-warning); font-weight:800; letter-spacing:3px; text-transform:uppercase;">Qu&eacute; Est&aacute; Pasando</div>
+                            <div style="font-size:0.75rem; color:var(--cto-warning); font-weight:800; letter-spacing:3px; text-transform:uppercase;">Qu&eacute; est&aacute; pasando</div>
                             <h2 style="font-size:1.5rem; font-weight:800; color:var(--cto-text); margin:0;">{title}</h2>
                         </div>
                     </div>
@@ -191,7 +191,7 @@ def _round_html(round_idx, emoji, title, brief, question, choices):
                 </div>
                 <button id="cto-confirm-btn-{round_idx}" class="cto-confirm-btn"
                     onclick="ctoConfirmDecision({round_idx})" style="display:none;">
-                    Confirmar Mi Elecci&oacute;n &rarr;
+                    Confirmar mi elecci&oacute;n &rarr;
                 </button>
             </div>
 
@@ -212,7 +212,7 @@ MODULES = [
                 <div class="cto-title-page">
                     <div class="cto-reveal" style="animation-delay:0s;">
                         <div style="font-size:0.875rem; font-weight:800; letter-spacing:3px; color:var(--cto-error); text-transform:uppercase; margin-bottom:24px; text-align:center;">
-                            &#127758; Informe de Misi&oacute;n
+                            &#127758; Informe de misi&oacute;n
                         </div>
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.3s;">
@@ -228,15 +228,15 @@ MODULES = [
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.9s;">
                         <div class="cto-stats-wrapper" style="margin-top:32px; max-width:420px; margin-left:auto; margin-right:auto;">
-                            <div class="cto-stats-header">&#127961;&#65039; La Contaminaci&oacute;n de NovaMind en Tu Ciudad</div>
+                            <div class="cto-stats-header">&#127961;&#65039; La contaminaci&oacute;n de NovaMind en tu ciudad</div>
                             <div class="cto-stats-grid">
                                 <div style="text-align:center; padding:8px 4px;">
-                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#9889; Energ&iacute;a de Familias</div>
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#9889; Energ&iacute;a de familias</div>
                                     <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">14.400</div>
                                     <div style="font-size:0.7rem; color:var(--cto-text-dim);">hogares/a&ntilde;o</div>
                                 </div>
                                 <div style="text-align:center; padding:8px 4px;">
-                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#128167; Uso de Agua</div>
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#128167; Uso de agua</div>
                                     <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">89</div>
                                     <div style="font-size:0.7rem; color:var(--cto-text-dim);">piscinas/a&ntilde;o</div>
                                 </div>
@@ -246,7 +246,7 @@ MODULES = [
                                     <div style="font-size:0.7rem; color:var(--cto-text-dim);">coches/a&ntilde;o</div>
                                 </div>
                                 <div style="text-align:center; padding:8px 4px;">
-                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#127793; Puntuaci&oacute;n Verde</div>
+                                    <div style="font-size:0.75rem; color:var(--cto-text-dim); text-transform:uppercase; letter-spacing:1px;">&#127793; Puntuaci&oacute;n verde</div>
                                     <div style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin-top:4px;">8 / 100 &#128561;</div>
                                     <div style="font-size:0.7rem; color:var(--cto-text-dim);">/100</div>
                                 </div>
@@ -270,17 +270,17 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 1,
-        "title": "Ronda 1: La Crisis de Refrigeraci\u00f3n",
+        "title": "Ronda 1: La crisis de refrigeraci\u00f3n",
         "html": _round_html(
             round_idx=1,
             emoji="\U0001f321\ufe0f",
-            title="La Crisis de Refrigeraci\u00f3n",
+            title="La crisis de refrigeraci\u00f3n",
             brief="Imagina un edificio que usa 89 piscinas de agua CADA A\u00d1O solo para mantener sus ordenadores fr\u00edos. Ese es el plan de NovaMind &mdash; y tu ciudad se est\u00e1 quedando sin agua.",
             question="\u00bfC\u00f3mo deber\u00eda NovaMind enfriar sus ordenadores?",
             choices=[
-                {"icon": "\U0001f9ca", "label": "Sumergir Servidores en L\u00edquido Especial", "desc": "Meter los ordenadores en un ba\u00f1o fr\u00edo en vez de rociar agua. Cuesta m\u00e1s instalarlo, pero no usa casi nada de agua."},
-                {"icon": "\u267b\ufe0f", "label": "Reutilizar Agua + Usar Aire Fr\u00edo", "desc": "Reciclar el agua y dejar que el aire fr\u00edo de fuera ayude. Ahorra aproximadamente la mitad del agua."},
-                {"icon": "\U0001f527", "label": "Solo A\u00f1adir Sensores a lo que Hay", "desc": "Mantener el mismo sistema pero a\u00f1adir sensores para desperdiciar un poco menos. Lo m\u00e1s barato, pero apenas cambia nada."},
+                {"icon": "\U0001f9ca", "label": "Sumergir servidores en l\u00edquido especial", "desc": "Meter los ordenadores en un ba\u00f1o fr\u00edo en vez de rociar agua. Cuesta m\u00e1s instalarlo, pero no usa casi nada de agua."},
+                {"icon": "\u267b\ufe0f", "label": "Reutilizar agua + usar aire fr\u00edo", "desc": "Reciclar el agua y dejar que el aire fr\u00edo de fuera ayude. Ahorra aproximadamente la mitad del agua."},
+                {"icon": "\U0001f527", "label": "Solo a\u00f1adir sensores a lo que hay", "desc": "Mantener el mismo sistema pero a\u00f1adir sensores para desperdiciar un poco menos. Lo m\u00e1s barato, pero apenas cambia nada."},
             ],
         ),
     },
@@ -289,17 +289,17 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 2,
-        "title": "Ronda 2: \u00bfDe D\u00f3nde Viene la Energ\u00eda?",
+        "title": "Ronda 2: \u00bfDe d\u00f3nde viene la energ\u00eda?",
         "html": _round_html(
             round_idx=2,
             emoji="\u26a1",
-            title="\u00bfDe D\u00f3nde Viene la Energ\u00eda?",
+            title="\u00bfDe d\u00f3nde viene la energ\u00eda?",
             brief="Ahora mismo, NovaMind se conectar\u00eda directamente a energ\u00eda sucia &mdash; el 65% viene de quemar gas y carb\u00f3n. Cada vez que alguien le hace una pregunta a la IA, se queman m\u00e1s combustibles f\u00f3siles.",
             question="\u00bfDe d\u00f3nde deber\u00eda NovaMind obtener su electricidad?",
             choices=[
-                {"icon": "\u2600\ufe0f", "label": "Construir una Granja Solar + Bater\u00edas", "desc": "Cubrir el tejado y los aparcamientos con paneles solares. A\u00f1adir bater\u00edas gigantes para la noche. Caro, pero NovaMind lo posee para siempre."},
-                {"icon": "\U0001f32c\ufe0f", "label": "Comprar Energ\u00eda Limpia de un Parque E\u00f3lico/Solar", "desc": "Firmar un acuerdo para obtener electricidad de un parque e\u00f3lico o solar cercano en vez de la red sucia."},
-                {"icon": "\U0001f4dc", "label": "Pagar por Compensaciones de Carbono", "desc": "Seguir quemando combustibles f\u00f3siles, pero pagar para que planten \u00e1rboles en otro lugar. Esto se llama una &lt;strong&gt;compensaci\u00f3n de carbono&lt;/strong&gt; &mdash; queda bien sobre el papel, pero la contaminaci\u00f3n sigue igual."},
+                {"icon": "\u2600\ufe0f", "label": "Construir una granja solar + bater\u00edas", "desc": "Cubrir el tejado y los aparcamientos con paneles solares. A\u00f1adir bater\u00edas gigantes para la noche. Caro, pero NovaMind lo posee para siempre."},
+                {"icon": "\U0001f32c\ufe0f", "label": "Comprar energ\u00eda limpia de un parque e\u00f3lico/solar", "desc": "Firmar un acuerdo para obtener electricidad de un parque e\u00f3lico o solar cercano en vez de la red sucia."},
+                {"icon": "\U0001f4dc", "label": "Pagar por compensaciones de carbono", "desc": "Seguir quemando combustibles f\u00f3siles, pero pagar para que planten \u00e1rboles en otro lugar. Esto se llama una &lt;strong&gt;compensaci\u00f3n de carbono&lt;/strong&gt; &mdash; queda bien sobre el papel, pero la contaminaci\u00f3n sigue igual."},
             ],
         ),
     },
@@ -308,17 +308,17 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 3,
-        "title": "Ronda 3: IA del Tama\u00f1o Adecuado",
+        "title": "Ronda 3: IA del tama\u00f1o adecuado",
         "html": _round_html(
             round_idx=3,
             emoji="\U0001f9e0",
-            title="IA del Tama\u00f1o Adecuado",
+            title="IA del tama\u00f1o adecuado",
             brief="NovaMind usa su modelo de IA m\u00e1s grande y potente para CADA pregunta &mdash; incluso las f\u00e1ciles como &#39;\u00bfQu\u00e9 tiempo hace?&#39; Piensa en los modelos de IA como cerebros de diferentes tama\u00f1os: algunos son enormes y potentes, otros son peque\u00f1os y r\u00e1pidos. 8 de cada 10 preguntas no necesitan el m\u00e1s grande.",
             question="\u00bfC\u00f3mo deber\u00eda NovaMind manejar las preguntas f\u00e1ciles vs. las dif\u00edciles?",
             choices=[
-                {"icon": "\U0001fa9c", "label": "Ajustar el Tama\u00f1o del Modelo a la Dificultad", "desc": "Usar un modelo peque\u00f1o para preguntas f\u00e1ciles, uno mediano para las complicadas, y el m\u00e1s grande solo para las m\u00e1s dif\u00edciles. Como elegir la herramienta correcta para cada trabajo."},
-                {"icon": "\U0001f9ec", "label": "Entrenar una IA M\u00e1s Peque\u00f1a y Lista", "desc": "Ense\u00f1ar a un modelo mediano a hacer casi todo lo que puede el gigante. Un modelo que es suficiente para el 90% de las preguntas."},
-                {"icon": "\U0001f4be", "label": "Solo Guardar Respuestas Repetidas", "desc": "Recordar respuestas comunes para que la IA no las repita. Pero el modelo m\u00e1s grande sigue funcionando para todo lo nuevo."},
+                {"icon": "\U0001fa9c", "label": "Ajustar el tama\u00f1o del modelo a la dificultad", "desc": "Usar un modelo peque\u00f1o para preguntas f\u00e1ciles, uno mediano para las complicadas, y el m\u00e1s grande solo para las m\u00e1s dif\u00edciles. Como elegir la herramienta correcta para cada trabajo."},
+                {"icon": "\U0001f9ec", "label": "Entrenar una IA m\u00e1s peque\u00f1a y lista", "desc": "Ense\u00f1ar a un modelo mediano a hacer casi todo lo que puede el gigante. Un modelo que es suficiente para el 90% de las preguntas."},
+                {"icon": "\U0001f4be", "label": "Solo guardar respuestas repetidas", "desc": "Recordar respuestas comunes para que la IA no las repita. Pero el modelo m\u00e1s grande sigue funcionando para todo lo nuevo."},
             ],
         ),
     },
@@ -327,11 +327,11 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 4,
-        "title": "Ronda 4: La Visi\u00f3n Global",
+        "title": "Ronda 4: La visi\u00f3n global",
         "html": _round_html(
             round_idx=4,
             emoji="\U0001f4cd",
-            title="La Visi\u00f3n Global",
+            title="La visi\u00f3n global",
             brief="Antes de aprobar la construcci\u00f3n de NovaMind en tu ciudad, pides ver su plan para construir m\u00e1s centros de datos por el mundo. D\u00f3nde una empresa pone sus OTROS centros de datos te dice todo sobre si se toman en serio la protecci\u00f3n del medio ambiente &mdash; o solo le dicen a tu ciudad lo que quiere o\u00edr.",
             question="\u00bfNovaMind tiene planes para 3 centros de datos m\u00e1s. D\u00f3nde los van a construir?",
             choices=[
@@ -346,17 +346,17 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 5,
-        "title": "Ronda 5: Control de Honestidad",
+        "title": "Ronda 5: Control de honestidad",
         "html": _round_html(
             round_idx=5,
             emoji="\U0001f4ca",
-            title="Control de Honestidad",
+            title="Control de honestidad",
             brief="La mayor\u00eda de las empresas de IA mantienen sus cifras de contaminaci\u00f3n en secreto. Est\u00e1n llegando nuevas leyes que les obligar\u00e1n a compartirlas. \u00bfDeber\u00eda NovaMind dar ejemplo o esconderse como todos los dem\u00e1s?",
             question="\u00bfCu\u00e1nto deber\u00eda NovaMind compartir con el p\u00fablico?",
             choices=[
-                {"icon": "\U0001f4e1", "label": "Marcador P\u00fablico en Vivo", "desc": "Mostrar a todos exactamente cu\u00e1nta energ\u00eda y agua usa NovaMind, actualizado en vivo. Honestidad total."},
-                {"icon": "\U0001f4c4", "label": "Informe Anual", "desc": "Publicar un informe una vez al a\u00f1o con los n\u00fameros grandes. Es lo que hacen la mayor\u00eda de las empresas &mdash; lo m\u00ednimo."},
-                {"icon": "\U0001f512", "label": "Solo Compartir lo que la Ley Obligue", "desc": "Esconder todo lo posible. Llamarlo un &#39;secreto empresarial.&#39;"},
+                {"icon": "\U0001f4e1", "label": "Marcador p\u00fablico en vivo", "desc": "Mostrar a todos exactamente cu\u00e1nta energ\u00eda y agua usa NovaMind, actualizado en vivo. Honestidad total."},
+                {"icon": "\U0001f4c4", "label": "Informe anual", "desc": "Publicar un informe una vez al a\u00f1o con los n\u00fameros grandes. Es lo que hacen la mayor\u00eda de las empresas &mdash; lo m\u00ednimo."},
+                {"icon": "\U0001f512", "label": "Solo compartir lo que la ley obligue", "desc": "Esconder todo lo posible. Llamarlo un &#39;secreto empresarial.&#39;"},
             ],
         ),
     },
@@ -365,7 +365,7 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 6,
-        "title": "Tu Informe de Asesor/a",
+        "title": "Tu informe de asesor/a",
         "html": """
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div id="cto-results-container" style="padding:20px 0; max-width:900px; margin:0 auto;">
@@ -393,7 +393,7 @@ QUIZ_CONFIG = {
             "C) El coste no importa porque el gobierno lo pagar\u00e1 de todas formas.",
         ],
         "a": "A) Los sensores solo ahorran un poquito de agua. El sistema sigue desperdiciando millones de litros durante una sequ\u00eda \u2014 un parche peque\u00f1o en un sistema roto no es suficiente.",
-        "success": "<strong>\u00a1Conocimiento de Refrigeraci\u00f3n Desbloqueado!</strong> Microsoft ya est\u00e1 probando esto. Un parche peque\u00f1o en un sistema roto no resuelve el verdadero problema.",
+        "success": "<strong>\u00a1Conocimiento de refrigeraci\u00f3n desbloqueado!</strong> Microsoft ya est\u00e1 probando esto. Un parche peque\u00f1o en un sistema roto no resuelve el verdadero problema.",
     },
     2: {
         "t": "t6",
@@ -404,7 +404,7 @@ QUIZ_CONFIG = {
             "C) El \u00fanico problema es que las compensaciones cuestan demasiado \u2014 la energ\u00eda solar ser\u00eda m\u00e1s barata a largo plazo.",
         ],
         "a": "B) Las compensaciones de carbono no cambian lo que alimenta el edificio \u2014 sigue quemando combustibles f\u00f3siles. La contaminaci\u00f3n es real. La etiqueta de \u2018verde\u2019 es solo matem\u00e1ticas en un papel.",
-        "success": "<strong>\u00a1Claridad sobre la Fuente de Energ\u00eda!</strong> La contaminaci\u00f3n sigue igual \u2014 solo cambia la contabilidad. El cambio real significa pasarse a energ\u00eda limpia.",
+        "success": "<strong>\u00a1Claridad sobre la fuente de energ\u00eda!</strong> La contaminaci\u00f3n sigue igual \u2014 solo cambia la contabilidad. El cambio real significa pasarse a energ\u00eda limpia.",
     },
     3: {
         "t": "t7",
@@ -415,7 +415,7 @@ QUIZ_CONFIG = {
             "C) El tama\u00f1o de la IA no cambia cu\u00e1nta energ\u00eda usa \u2014 el ordenador usa la misma potencia sin importar qu\u00e9.",
         ],
         "a": "A) Para preguntas f\u00e1ciles, una IA peque\u00f1a funciona igual de bien \u2014 y usa 50 veces menos energ\u00eda. \u00bfPara qu\u00e9 usar un cohete para ir a la tienda de la esquina?",
-        "success": "<strong>\u00a1Eficiencia Desbloqueada!</strong> As\u00ed es como trabajan las empresas de IA m\u00e1s inteligentes \u2014 ajustan el tama\u00f1o del modelo a cada pregunta.",
+        "success": "<strong>\u00a1Eficiencia desbloqueada!</strong> As\u00ed es como trabajan las empresas de IA m\u00e1s inteligentes \u2014 ajustan el tama\u00f1o del modelo a cada pregunta.",
     },
     4: {
         "t": "t8",
@@ -426,7 +426,7 @@ QUIZ_CONFIG = {
             "C) El \u00fanico problema real es la imagen p\u00fablica \u2014 el impacto ambiental real es m\u00e1s o menos el mismo independientemente de la ubicaci\u00f3n.",
         ],
         "a": "B) El terreno barato esconde costes enormes \u2014 3 veces m\u00e1s refrigeraci\u00f3n, redes de gas que anulan el progreso verde, y no hay suficiente agua. Si recortan gastos en todas partes, las promesas que hicieron a tu ciudad probablemente son solo un truco de marketing.",
-        "success": "<strong>\u00a1Patr\u00f3n Detectado!</strong> D\u00f3nde una empresa construye sus OTROS centros de datos revela lo que realmente les importa. Meta y Google eligieron Escandinavia por una raz\u00f3n \u2014 refrigeraci\u00f3n gratis + redes limpias.",
+        "success": "<strong>\u00a1Patr\u00f3n detectado!</strong> D\u00f3nde una empresa construye sus OTROS centros de datos revela lo que realmente les importa. Meta y Google eligieron Escandinavia por una raz\u00f3n \u2014 refrigeraci\u00f3n gratis + redes limpias.",
     },
     5: {
         "t": "t9",
@@ -437,7 +437,7 @@ QUIZ_CONFIG = {
             "C) Es imposible reportar estos n\u00fameros con precisi\u00f3n porque cada edificio es diferente.",
         ],
         "a": "B) Las nuevas leyes llegar\u00e1n de todos modos. Las empresas que comparten primero generan confianza y establecen las reglas \u2014 las que se esconden se comparan con petroleras que ocultan la contaminaci\u00f3n.",
-        "success": "<strong>\u00a1Est\u00e1ndar de Transparencia Establecido!</strong> Las empresas que comparten primero establecen las reglas. Esconderse solo hace que la gente conf\u00ede menos en ti.",
+        "success": "<strong>\u00a1Est\u00e1ndar de transparencia establecido!</strong> Las empresas que comparten primero establecen las reglas. Esconderse solo hace que la gente conf\u00ede menos en ti.",
     },
     6: {
         "t": "t10",
@@ -448,7 +448,7 @@ QUIZ_CONFIG = {
             "C) La tecnolog\u00eda se volver\u00e1 m\u00e1s eficiente sola, as\u00ed que las decisiones de hoy no importan realmente a largo plazo.",
         ],
         "a": "B) Cada decisi\u00f3n \u2014 refrigeraci\u00f3n, energ\u00eda, tama\u00f1o de IA, ubicaci\u00f3n, honestidad \u2014 se suma a trav\u00e9s de millones de usuarios. Cuando una empresa lidera, las dem\u00e1s sienten la presi\u00f3n de seguir.",
-        "success": "<strong>\u00a1Lo Conseguiste!</strong> La sostenibilidad de la IA no es una gran decisi\u00f3n \u2014 son cinco decisiones inteligentes que se suman y cambian c\u00f3mo funciona toda una industria.",
+        "success": "<strong>\u00a1Lo conseguiste!</strong> La sostenibilidad de la IA no es una gran decisi\u00f3n \u2014 son cinco decisiones inteligentes que se suman y cambian c\u00f3mo funciona toda una industria.",
     },
 }
 
@@ -613,33 +613,33 @@ def generate_success_message(prev, curr, specific_text):
     if style_key == "first":
         card_class += " first-score"
         header_emoji = "\U0001f389"
-        header_title = "\u00a1Est\u00e1s Oficialmente en la Clasificaci\u00f3n!"
-        summary_line = "Acabas de obtener tu primera Puntuaci\u00f3n de Br\u00fajula Moral \u2014 ya formas parte del ranking global."
+        header_title = "\u00a1Est\u00e1s oficialmente en la clasificaci\u00f3n!"
+        summary_line = "Acabas de obtener tu primera puntuaci\u00f3n de br\u00fajula moral \u2014 ya formas parte del ranking global."
         cta_line = "Sigue haciendo recomendaciones para escalar en la clasificaci\u00f3n."
     elif style_key == "major":
         header_emoji = "\U0001f525"
-        header_title = "\u00a1Gran Impulso en la Br\u00fajula Moral!"
+        header_title = "\u00a1Gran impulso en la br\u00fajula moral!"
         summary_line = "Tu recomendaci\u00f3n tuvo un gran impacto \u2014 acabas de adelantar a otros asesores."
         cta_line = "Contin\u00faa tu simulaci\u00f3n para mantener el impulso."
     elif style_key == "climb":
         header_emoji = "\U0001f680"
-        header_title = "Est\u00e1s Escalando en la Clasificaci\u00f3n"
+        header_title = "Est\u00e1s escalando en la clasificaci\u00f3n"
         summary_line = "Buen trabajo \u2014 has superado a otros participantes."
         cta_line = "Haz clic en SIGUIENTE para continuar tu simulaci\u00f3n."
     elif style_key == "tight":
         header_emoji = "\U0001f4ca"
-        header_title = "La Clasificaci\u00f3n Est\u00e1 Cambiando"
+        header_title = "La clasificaci\u00f3n est\u00e1 cambiando"
         summary_line = "Los otros equipos tambi\u00e9n se mueven. Unas cuantas respuestas m\u00e1s fuertes te diferenciar\u00e1n."
         cta_line = "Afronta la siguiente ronda para fortalecer tu posici\u00f3n."
     else:
         header_emoji = "\u2705"
-        header_title = "Progreso Registrado"
-        summary_line = "Tu conocimiento en sostenibilidad aument\u00f3 tu Puntuaci\u00f3n de Br\u00fajula Moral."
+        header_title = "Progreso registrado"
+        summary_line = "Tu conocimiento en sostenibilidad aument\u00f3 tu puntuaci\u00f3n de br\u00fajula moral."
         cta_line = "Prueba la siguiente ronda para seguir escalando."
 
     if style_key == "first":
         score_line = f"\U0001f9ed Puntuaci\u00f3n: <strong>{new_score:.3f}</strong>"
-        rank_line = f"\U0001f3c5 Posici\u00f3n Inicial: <strong>#{new_rank}</strong>"
+        rank_line = f"\U0001f3c5 Posici\u00f3n inicial: <strong>#{new_rank}</strong>"
     else:
         score_line = (
             f"\U0001f9ed Puntuaci\u00f3n: {old_score:.3f} \u2192 <strong>{new_score:.3f}</strong> "
@@ -693,10 +693,10 @@ def render_top_dashboard(data, module_id):
     progress_pct = min(100, int((count_completed / TOTAL_COURSE_TASKS) * 100))
 
     if module_id <= 3:
-        phase_label = "RONDAS 1\u20133: Elecciones de Construcci\u00f3n"
+        phase_label = "RONDAS 1\u20133: Elecciones de construcci\u00f3n"
         phase_color = "#6366f1"
     else:
-        phase_label = "RONDAS 4\u20135: Grandes Decisiones"
+        phase_label = "RONDAS 4\u20135: Grandes decisiones"
         phase_color = "#ef4444"
 
     return f"""
@@ -704,23 +704,23 @@ def render_top_dashboard(data, module_id):
         <div class="summary-box-inner">
             <div class="summary-metrics">
                 <div style="text-align:center;">
-                    <div class="label-text">Puntuaci\u00f3n Br\u00fajula Moral</div>
+                    <div class="label-text">Puntuaci\u00f3n br\u00fajula moral</div>
                     <div class="score-text-primary">\U0001f9ed {display_score:.3f}</div>
                 </div>
                 <div class="divider-vertical"></div>
                 <div style="text-align:center;">
-                    <div class="label-text">Ranking de Equipo</div>
+                    <div class="label-text">Ranking de equipo</div>
                     <div class="score-text-team">{team_rank_display}</div>
                 </div>
                 <div class="divider-vertical"></div>
                 <div style="text-align:center;">
-                    <div class="label-text">Ranking Global</div>
+                    <div class="label-text">Ranking global</div>
                     <div class="score-text-global">{rank_display}</div>
                 </div>
             </div>
             <div class="summary-progress">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <div class="progress-label">Progreso de la Simulaci\u00f3n: {progress_pct}%</div>
+                    <div class="progress-label">Progreso de la simulaci\u00f3n: {progress_pct}%</div>
                     <div style="font-size:0.75rem; font-weight:700; color:{phase_color}; background:rgba(0,0,0,0.05); padding:2px 8px; border-radius:10px;">{phase_label}</div>
                 </div>
                 <div class="progress-bar-bg">
@@ -756,7 +756,7 @@ def render_leaderboard_card(data, username, team_name):
             )
     return f"""
     <div class="scenario-box leaderboard-card">
-        <h3 class="slide-title" style="margin-bottom:10px;">\U0001f4ca Clasificaci\u00f3n en Vivo</h3>
+        <h3 class="slide-title" style="margin-bottom:10px;">\U0001f4ca Clasificaci\u00f3n en vivo</h3>
         <div class="lb-tabs">
             <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
             <label for="lb-tab-team" class="lb-tab-label">\U0001f3c6 Equipo</label>
@@ -1182,67 +1182,67 @@ window.ctoSelectedChoice = {};
 // --- Round Data (from JSX) ---
 window.CTO_ROUNDS = [
     null, // index 0 unused (rounds are 1-5)
-    { id:"cooling", title:"La Crisis de Refrigeraci\\u00f3n", emoji:"\\ud83c\\udf21\\ufe0f",
+    { id:"cooling", title:"La crisis de refrigeraci\\u00f3n", emoji:"\\ud83c\\udf21\\ufe0f",
       choices:[
-        { id:"a", label:"Sumergir Servidores en L\\u00edquido Especial", icon:"\\ud83e\\uddf2",
+        { id:"a", label:"Sumergir servidores en l\\u00edquido especial", icon:"\\ud83e\\uddf2",
           fx:{energy:-35,water:-70,co2:-30,cost:-20,greenScore:28,reputation:22},
           fb:"\\u00a1Incre\\u00edble! La ciudad conserva su agua. Microsoft ya est\\u00e1 probando esta misma idea. \\u00a1Acabas de ahorrar a la ciudad casi 60 piscinas de agua cada a\\u00f1o!", tier:"best" },
-        { id:"b", label:"Reutilizar Agua + Usar Aire Fr\\u00edo", icon:"\\u267b\\ufe0f",
+        { id:"b", label:"Reutilizar agua + usar aire fr\\u00edo", icon:"\\u267b\\ufe0f",
           fx:{energy:-15,water:-45,co2:-12,cost:-8,greenScore:15,reputation:14},
           fb:"\\u00a1Buena jugada! Reciclar el agua significa que la ciudad conserva la mitad de su suministro. En los d\\u00edas fr\\u00edos, la naturaleza enfr\\u00eda gratis.", tier:"good" },
-        { id:"c", label:"Solo A\\u00f1adir Sensores a lo que Hay", icon:"\\ud83d\\udd27",
+        { id:"c", label:"Solo a\\u00f1adir sensores a lo que hay", icon:"\\ud83d\\udd27",
           fx:{energy:-5,water:-8,co2:-4,cost:-3,greenScore:4,reputation:-5},
           fb:"Uy. Los sensores apenas ayudan \\u2014 sigue siendo el mismo sistema derrochador. Las noticias locales publican: \\u2018Empresa de IA devora agua durante la sequ\\u00eda.\\u2019", tier:"poor" },
       ],
     },
-    { id:"energy", title:"\\u00bfDe D\\u00f3nde Viene la Energ\\u00eda?", emoji:"\\u26a1",
+    { id:"energy", title:"\\u00bfDe d\\u00f3nde viene la energ\\u00eda?", emoji:"\\u26a1",
       choices:[
-        { id:"a", label:"Construir una Granja Solar + Bater\\u00edas", icon:"\\u2600\\ufe0f",
+        { id:"a", label:"Construir una granja solar + bater\\u00edas", icon:"\\u2600\\ufe0f",
           fx:{energy:-10,water:-5,co2:-55,cost:-15,greenScore:25,reputation:20},
           fb:"\\u00a1Movimiento audaz! Los paneles solares absorben el sol todo el d\\u00eda, las bater\\u00edas mantienen todo funcionando de noche. \\u00a1La contaminaci\\u00f3n de CO\\u2082 de la ciudad cae en picado! La alcaldesa est\\u00e1 encantada.", tier:"best" },
-        { id:"b", label:"Comprar Energ\\u00eda Limpia de un Parque E\\u00f3lico/Solar", icon:"\\ud83c\\udf2c\\ufe0f",
+        { id:"b", label:"Comprar energ\\u00eda limpia de un parque e\\u00f3lico/solar", icon:"\\ud83c\\udf2c\\ufe0f",
           fx:{energy:-3,water:-3,co2:-35,cost:-5,greenScore:16,reputation:12},
           fb:"Buena elecci\\u00f3n \\u2014 esto es lo que Google y Apple hacen realmente. La electricidad de NovaMind ahora viene del viento y el sol en vez de quemar carb\\u00f3n y gas.", tier:"good" },
-        { id:"c", label:"Pagar por Compensaciones de Carbono", icon:"\\ud83d\\udcdc",
+        { id:"c", label:"Pagar por compensaciones de carbono", icon:"\\ud83d\\udcdc",
           fx:{energy:0,water:0,co2:-10,cost:-1,greenScore:3,reputation:-8},
           fb:"Plantar \\u00e1rboles est\\u00e1 bien, pero NovaMind SIGUE quemando combustibles f\\u00f3siles. Los grupos ecologistas lo llaman falso. La contaminaci\\u00f3n no ha cambiado nada en realidad.", tier:"poor" },
       ],
     },
-    { id:"models", title:"IA del Tama\\u00f1o Adecuado", emoji:"\\ud83e\\udde0",
+    { id:"models", title:"IA del tama\\u00f1o adecuado", emoji:"\\ud83e\\udde0",
       choices:[
-        { id:"a", label:"Ajustar el Tama\\u00f1o del Modelo a la Dificultad", icon:"\\ud83e\\udea9",
+        { id:"a", label:"Ajustar el tama\\u00f1o del modelo a la dificultad", icon:"\\ud83e\\udea9",
           fx:{energy:-40,water:-30,co2:-38,cost:-35,greenScore:22,reputation:15},
           fb:"\\u00a1Genial! 8 de cada 10 preguntas ahora usan el modelo de IA peque\\u00f1o \\u2014 usa 50 veces menos energ\\u00eda, y nadie nota la diferencia. \\u00a1As\\u00ed es como trabajan las empresas de IA m\\u00e1s inteligentes!", tier:"best" },
-        { id:"b", label:"Entrenar una IA M\\u00e1s Peque\\u00f1a y Lista", icon:"\\ud83e\\uddec",
+        { id:"b", label:"Entrenar una IA m\\u00e1s peque\\u00f1a y lista", icon:"\\ud83e\\uddec",
           fx:{energy:-25,water:-18,co2:-22,cost:-20,greenScore:14,reputation:10},
           fb:"\\u00a1Bien! El modelo de IA m\\u00e1s peque\\u00f1o aprendi\\u00f3 casi todos los trucos del grande. Maneja 9 de cada 10 preguntas sin problema, usando mucha menos energ\\u00eda.", tier:"good" },
-        { id:"c", label:"Solo Guardar Respuestas Repetidas", icon:"\\ud83d\\udcbe",
+        { id:"c", label:"Solo guardar respuestas repetidas", icon:"\\ud83d\\udcbe",
           fx:{energy:-10,water:-5,co2:-8,cost:-10,greenScore:5,reputation:3},
           fb:"Guardar respuestas ayuda un poco, pero la mayor\\u00eda de las preguntas son \\u00fanicas \\u2014 el modelo m\\u00e1s grande sigue funcionando casi siempre. Es como poner una tirita peque\\u00f1a en un problema grande.", tier:"poor" },
       ],
     },
-    { id:"expansion", title:"La Visi\\u00f3n Global", emoji:"\\ud83d\\udccd",
+    { id:"expansion", title:"La visi\\u00f3n global", emoji:"\\ud83d\\udccd",
       choices:[
-        { id:"a", label:"Ubicaciones Fr\\u00edas y Limpias", icon:"\\ud83c\\udf0d",
+        { id:"a", label:"Ubicaciones fr\\u00edas y limpias", icon:"\\ud83c\\udf0d",
           fx:{energy:-20,water:-40,co2:-30,cost:-18,greenScore:20,reputation:18},
           fb:"\\u00a1NovaMind cumple lo que promete! Empresas como Meta y Google construyen en Escandinavia porque el aire helado = refrigeraci\\u00f3n gratis y redes limpias. Esta empresa va en serio.", tier:"best" },
-        { id:"b", label:"Una Estrategia Mixta", icon:"\\u2696\\ufe0f",
+        { id:"b", label:"Una estrategia mixta", icon:"\\u2696\\ufe0f",
           fx:{energy:-10,water:-20,co2:-18,cost:-10,greenScore:12,reputation:10},
           fb:"No est\\u00e1 mal, pero tampoco est\\u00e1 genial. Oreg\\u00f3n es inteligente, pero Texas e Irlanda son se\\u00f1ales de alerta. Irlanda prohibi\\u00f3 nuevos centros de datos en 2022 porque amenazaban el 18% de la electricidad del pa\\u00eds.", tier:"good" },
-        { id:"c", label:"Donde el Terreno Sea M\\u00e1s Barato", icon:"\\ud83c\\udfdc\\ufe0f",
+        { id:"c", label:"Donde el terreno sea m\\u00e1s barato", icon:"\\ud83c\\udfdc\\ufe0f",
           fx:{energy:5,water:10,co2:5,cost:5,greenScore:-3,reputation:-10},
           fb:"Se\\u00f1al de alerta. Si NovaMind construye en todas partes donde es barato y sucio, las promesas que hicieron a TU ciudad probablemente son solo un truco de marketing. El patr\\u00f3n revela la verdad.", tier:"poor" },
       ],
     },
-    { id:"transparency", title:"Control de Honestidad", emoji:"\\ud83d\\udcca",
+    { id:"transparency", title:"Control de honestidad", emoji:"\\ud83d\\udcca",
       choices:[
-        { id:"a", label:"Marcador P\\u00fablico en Vivo", icon:"\\ud83d\\udce1",
+        { id:"a", label:"Marcador p\\u00fablico en vivo", icon:"\\ud83d\\udce1",
           fx:{energy:-5,water:-3,co2:-5,cost:2,greenScore:18,reputation:25},
           fb:"\\u00a1NovaMind se convierte en la PRIMERA empresa de IA en mostrar sus n\\u00fameros en vivo! Cient\\u00edficos, periodistas y otras ciudades aplauden tu liderazgo. \\u00a1Acabas de establecer un nuevo est\\u00e1ndar para toda la industria!", tier:"best" },
-        { id:"b", label:"Informe Anual", icon:"\\ud83d\\udcc4",
+        { id:"b", label:"Informe anual", icon:"\\ud83d\\udcc4",
           fx:{energy:-2,water:-1,co2:-2,cost:0,greenScore:8,reputation:10},
           fb:"Un informe anual es lo que Google y Microsoft ya hacen. Est\\u00e1 bien, pero una vez al a\\u00f1o no es suficiente para mantener a las empresas realmente honestas.", tier:"good" },
-        { id:"c", label:"Solo Compartir lo que la Ley Obligue", icon:"\\ud83d\\udd12",
+        { id:"c", label:"Solo compartir lo que la ley obligue", icon:"\\ud83d\\udd12",
           fx:{energy:0,water:0,co2:0,cost:0,greenScore:-2,reputation:-15},
           fb:"Los investigadores se\\u00f1alan a NovaMind. Una publicaci\\u00f3n viral los compara con petroleras que esconden datos de contaminaci\\u00f3n. La gente deja de confiar en ellos.", tier:"poor" },
       ],
@@ -1270,7 +1270,7 @@ function ctoGrade(s) {
     if (s >= 75) return { l:"A", c:"var(--cto-success)", t:"Excelente" };
     if (s >= 60) return { l:"B", c:"var(--cto-accent)", t:"Genial" };
     if (s >= 45) return { l:"C", c:"var(--cto-warning)", t:"Aceptable" };
-    if (s >= 30) return { l:"D", c:"var(--cto-warning)", t:"Necesita Mejorar" };
+    if (s >= 30) return { l:"D", c:"var(--cto-warning)", t:"Necesita mejorar" };
     return { l:"F", c:"var(--cto-error)", t:"Cr\\u00edtico" };
 }
 
@@ -1284,10 +1284,10 @@ function ctoRenderStats(containerId, stats, prev) {
     var el = document.getElementById(containerId);
     if (!el) return;
     var items = [
-        {k:"energy", l:"Energ\\u00eda de Familias", u:"hogares/a\\u00f1o", i:"\\u26a1", conv:3.5, up:false},
-        {k:"water", l:"Uso de Agua", u:"piscinas/a\\u00f1o", i:"\\ud83d\\udca7", conv:2500000, up:false},
+        {k:"energy", l:"Energ\\u00eda de familias", u:"hogares/a\\u00f1o", i:"\\u26a1", conv:3.5, up:false},
+        {k:"water", l:"Uso de agua", u:"piscinas/a\\u00f1o", i:"\\ud83d\\udca7", conv:2500000, up:false},
         {k:"co2", l:"Contaminaci\\u00f3n CO\\u2082", u:"coches/a\\u00f1o", i:"\\ud83d\\ude97", conv:4.2, up:false},
-        {k:"greenScore", l:"Puntuaci\\u00f3n Verde", u:"/100", i:"\\ud83c\\udf31", conv:1, up:true},
+        {k:"greenScore", l:"Puntuaci\\u00f3n verde", u:"/100", i:"\\ud83c\\udf31", conv:1, up:true},
     ];
     var html = "";
     for (var idx = 0; idx < items.length; idx++) {
@@ -1384,7 +1384,7 @@ function ctoConfirmDecision(roundIdx) {
 
     // Build feedback
     var tc = {best:"var(--cto-success)", good:"var(--cto-warning)", poor:"var(--cto-error)"};
-    var tl = {best:"\\ud83c\\udf1f \\u00a1Elecci\\u00f3n Incre\\u00edble!", good:"\\ud83d\\udc4d \\u00a1Buena Elecci\\u00f3n!", poor:"\\u26a0\\ufe0f Uy..."};
+    var tl = {best:"\\ud83c\\udf1f \\u00a1Elecci\\u00f3n incre\\u00edble!", good:"\\ud83d\\udc4d \\u00a1Buena elecci\\u00f3n!", poor:"\\u26a0\\ufe0f Uy..."};
 
     // Compute relatable impact values
     var prevState = window.ctoPrevState;
@@ -1429,8 +1429,8 @@ function ctoConfirmDecision(roundIdx) {
         + '<div class="cto-impact-detail">\\ud83d\\ude97 CO\\u2082</div></div></div>'
         + '<div id="cto-impact-green-' + roundIdx + '" class="cto-impact-card" style="display:none;">'
         + '<div class="cto-impact-icon">\\ud83c\\udf31</div>'
-        + '<div><div class="cto-impact-text" style="color:var(--cto-success);">Puntuaci\\u00f3n Verde: ' + prevGreen + ' \\u2192 ' + newGreen + '</div>'
-        + '<div class="cto-impact-detail">\\ud83c\\udf31 Puntuaci\\u00f3n Verde</div></div></div>'
+        + '<div><div class="cto-impact-text" style="color:var(--cto-success);">Puntuaci\\u00f3n verde: ' + prevGreen + ' \\u2192 ' + newGreen + '</div>'
+        + '<div class="cto-impact-detail">\\ud83c\\udf31 Puntuaci\\u00f3n verde</div></div></div>'
         + '<div id="cto-impact-done-' + roundIdx + '" style="display:none; margin-top:12px; font-size:0.9rem; color:var(--cto-accent); font-weight:700;">\\u2705 \\u00a1Listo! Haz clic en SIGUIENTE para continuar.</div>'
         + '</div>';
 
@@ -1521,8 +1521,8 @@ function ctoRenderResults() {
 
     // Progress rings
     var ringItems = [
-        {l:"Puntuaci\\u00f3n Verde", v:stats.greenScore, m:100},
-        {l:"Mejores Elecciones", v:bc, m:5}
+        {l:"Puntuaci\\u00f3n verde", v:stats.greenScore, m:100},
+        {l:"Mejores elecciones", v:bc, m:5}
     ];
     var ringsHtml = '';
     for (var ri = 0; ri < ringItems.length; ri++) {
@@ -1547,9 +1547,9 @@ function ctoRenderResults() {
     var poolsSaved = ((INIT.water - stats.water) / 2500000).toFixed(1);
     var carsRemoved = ((INIT.co2 - stats.co2) / 4.2).toFixed(0);
     var impactItems = [
-        {l:"Hogares de Energ\\u00eda Ahorrados", v:homesSaved, i:"\\u26a1"},
-        {l:"Piscinas de Agua Ahorradas", v:poolsSaved, i:"\\ud83d\\udca7"},
-        {l:"Coches de CO\\u2082 Eliminados", v:carsRemoved, i:"\\ud83d\\ude97"}
+        {l:"Hogares de energ\\u00eda ahorrados", v:homesSaved, i:"\\u26a1"},
+        {l:"Piscinas de agua ahorradas", v:poolsSaved, i:"\\ud83d\\udca7"},
+        {l:"Coches de CO\\u2082 eliminados", v:carsRemoved, i:"\\ud83d\\ude97"}
     ];
     var impactHtml = '';
     for (var ii = 0; ii < impactItems.length; ii++) {
@@ -1563,7 +1563,7 @@ function ctoRenderResults() {
     // Audit trail
     var tc2 = {best:"var(--cto-success)", good:"var(--cto-warning)", poor:"var(--cto-error)"};
     var tl2 = {best:"Mejor", good:"Buena", poor:"Pobre"};
-    var roundNames = [null, "Refrigeraci\\u00f3n", "Fuente de Energ\\u00eda", "Eficiencia de IA", "Plan Global", "Transparencia"];
+    var roundNames = [null, "Refrigeraci\\u00f3n", "Fuente de energ\\u00eda", "Eficiencia de IA", "Plan global", "Transparencia"];
     var roundEmojis = [null, "\\ud83c\\udf21\\ufe0f", "\\u26a1", "\\ud83e\\udde0", "\\ud83d\\udccd", "\\ud83d\\udcca"];
     var auditHtml = '';
     for (var ai = 0; ai < choices.length; ai++) {
@@ -1595,7 +1595,7 @@ function ctoRenderResults() {
             + '<div style="font-size:3rem;">\\ud83d\\udd04</div>'
             + '<h2 style="font-size:1.6rem; font-weight:800; color:var(--cto-warning); margin-top:12px;">NECESITA M\\u00c1S TRABAJO</h2>'
             + '<p style="font-size:1.05rem; color:var(--cto-text-dim); margin-top:8px; line-height:1.7; max-width:440px; margin-left:auto; margin-right:auto;">'
-            + 'NovaMind mejor\\u00f3, pero la contaminaci\\u00f3n de tu ciudad sigue siendo demasiado alta (Puntuaci\\u00f3n Verde bajo 60). La alcaldesa los env\\u00eda de vuelta \\u2014 tu ciudad se merece algo mejor.</p>'
+            + 'NovaMind mejor\\u00f3, pero la contaminaci\\u00f3n de tu ciudad sigue siendo demasiado alta (Puntuaci\\u00f3n verde bajo 60). La alcaldesa los env\\u00eda de vuelta \\u2014 tu ciudad se merece algo mejor.</p>'
             + '<div style="margin-top:20px; display:inline-block; padding:12px 28px; border-radius:12px; background:rgba(251,191,36,0.1); border:1px solid var(--cto-warning); font-size:1rem; color:var(--cto-warning); font-weight:700;">'
             + '\\u23f3 DEVUELTO PARA CAMBIOS</div>'
             + '</div>';
@@ -1603,14 +1603,14 @@ function ctoRenderResults() {
 
     // What you learned
     var learnHtml = '<div class="cto-card" style="margin-top:24px; text-align:center;">'
-        + '<div style="font-size:1.1rem; font-weight:800; color:var(--cto-text);">\\ud83d\\udca1 Lo Que Acabas de Aprender</div>'
+        + '<div style="font-size:1.1rem; font-weight:800; color:var(--cto-text);">\\ud83d\\udca1 Lo que acabas de aprender</div>'
         + '<p style="font-size:1rem; color:var(--cto-text-dim); line-height:1.7; margin-top:8px; max-width:480px; margin-left:auto; margin-right:auto;">'
         + 'Empresas reales como Google, Meta y Microsoft se enfrentan a estas mismas decisiones cada d\\u00eda. C\\u00f3mo enfr\\u00edan los ordenadores, de d\\u00f3nde obtienen la energ\\u00eda, qu\\u00e9 tama\\u00f1o de IA usan, d\\u00f3nde construyen y cu\\u00e1n honestas son \\u2014 esas cinco cosas deciden si la IA ayuda o da\\u00f1a a nuestro planeta.</p>'
         + '<div style="font-size:0.8rem; color:var(--cto-text-dim); margin-top:12px;">Basado en datos reales de IEA, MIT, UC Riverside, VU Amsterdam (2024\\u20132025)</div>'
         + '</div>';
 
     var climateHtml = '<div class="cto-card" style="margin-top:24px; text-align:center;">'
-        + '<div style="font-size:1.1rem; font-weight:800; color:var(--cto-text);">\\ud83c\\udf0d El Panorama General</div>'
+        + '<div style="font-size:1.1rem; font-weight:800; color:var(--cto-text);">\\ud83c\\udf0d El panorama general</div>'
         + '<p style="font-size:1rem; color:var(--cto-text-dim); line-height:1.7; margin-top:8px; max-width:480px; margin-left:auto; margin-right:auto;">'
         + 'Los centros de datos de IA ya usan m\\u00e1s electricidad que algunos pa\\u00edses enteros. Cada decisi\\u00f3n que acabas de tomar \\u2014 refrigeraci\\u00f3n, energ\\u00eda, tama\\u00f1o de modelo, ubicaci\\u00f3n, transparencia \\u2014 es una palanca real que decide cu\\u00e1nto calienta la IA nuestro planeta.</p>'
         + '<p style="font-size:1rem; color:var(--cto-success); font-weight:700; line-height:1.7; margin-top:12px; max-width:480px; margin-left:auto; margin-right:auto;">'
@@ -1623,10 +1623,10 @@ function ctoRenderResults() {
         + '<span style="color:' + g.c + ';">' + g.l + '</span> \\u2014 ' + g.t + '</h1>'
         + '<div style="display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-top:32px;">' + ringsHtml + '</div>'
         + '<div class="cto-card" style="margin-top:28px;">'
-        + '<h3 style="font-size:1.2rem; font-weight:800; color:var(--cto-text); margin:0 0 16px 0;">Lo Que Cambiaron Tus Decisiones</h3>'
+        + '<h3 style="font-size:1.2rem; font-weight:800; color:var(--cto-text); margin:0 0 16px 0;">Lo que cambiaron tus decisiones</h3>'
         + '<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">' + impactHtml + '</div></div>'
         + '<div class="cto-card" style="margin-top:20px;">'
-        + '<h3 style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin:0 0 12px 0;">Tus 5 Elecciones</h3>'
+        + '<h3 style="font-size:1.1rem; font-weight:800; color:var(--cto-text); margin:0 0 12px 0;">Tus 5 elecciones</h3>'
         + auditHtml + '</div>'
         + certHtml
         + learnHtml
@@ -1788,11 +1788,11 @@ def create_fairness_fixer_es_sustainability_app(theme_primary_hue: str = "indigo
                     <summary style="padding:14px 24px; cursor:pointer; text-transform:uppercase; letter-spacing:1.5px;
                                     color:var(--body-text-color-subdued); font-size:0.78rem; font-weight:700;
                                     text-align:center; list-style:none;">
-                        &#9656; La F&oacute;rmula de la Br&uacute;jula Moral
+                        &#9656; La f&oacute;rmula de la br&uacute;jula moral
                     </summary>
                     <div style="padding:0 24px 24px 24px; text-align:center;">
                         <div style="font-size:1.3rem; font-weight:700; margin:12px 0; font-family:'Outfit',sans-serif;">
-                            Puntuaci&oacute;n Br&uacute;jula Moral =
+                            Puntuaci&oacute;n br&uacute;jula moral =
                             <span style="background:rgba(5,150,105,0.15); color:var(--ace-success); padding:4px 10px; border-radius:6px;">
                                 [ Precisi&oacute;n ]</span>
                             &times;
@@ -1800,8 +1800,8 @@ def create_fairness_fixer_es_sustainability_app(theme_primary_hue: str = "indigo
                                 [ Sostenibilidad % ]</span>
                         </div>
                         <p style="font-size:0.95rem; margin:12px 0 0 0; color:var(--body-text-color-subdued);">
-                            <strong>Sostenibilidad %</strong> refleja tu progreso de Br&uacute;jula Moral a trav&eacute;s de la simulaci&oacute;n.<br/>
-                            Si tu Sostenibilidad % es <strong>0%</strong>, tu Puntuaci&oacute;n Br&uacute;jula Moral es <strong>0</strong>.
+                            <strong>Sostenibilidad %</strong> refleja tu progreso de br&uacute;jula moral a trav&eacute;s de la simulaci&oacute;n.<br/>
+                            Si tu Sostenibilidad % es <strong>0%</strong>, tu puntuaci&oacute;n br&uacute;jula moral es <strong>0</strong>.
                         </p>
                     </div>
                 </details>
