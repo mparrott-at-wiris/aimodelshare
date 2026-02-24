@@ -384,13 +384,13 @@ MODULES = [
 QUIZ_CONFIG = {
     2: {
         "t": "t1",
-        "q": "A friend says: *\u2018One AI question only uses half a glass of water \u2014 who cares?\u2019* Why should you care?",
+        "q": "A friend says: *\u2018One AI question only uses about a bottle of water \u2014 who cares?\u2019* Why should you care?",
         "o": [
-            "A) Your friend is right \u2014 half a glass is nothing.",
-            "B) One question is tiny, but 200 million people asking 50+ questions a day adds up to billions of glasses of water every year. Small things become huge when everyone does them.",
+            "A) Your friend is right \u2014 one bottle is nothing.",
+            "B) One question is tiny, but 200 million people asking 50+ questions a day adds up to billions of bottles of water every year. Small things become huge when everyone does them.",
             "C) Water doesn\u2019t matter \u2014 the real problem is only electricity.",
         ],
-        "a": "B) One question is tiny, but 200 million people asking 50+ questions a day adds up to billions of glasses of water every year. Small things become huge when everyone does them.",
+        "a": "B) One question is tiny, but 200 million people asking 50+ questions a day adds up to billions of bottles of water every year. Small things become huge when everyone does them.",
         "success": "<strong>Nailed it!</strong> One question is small. But 200 million people asking 50+ questions a day? That adds up fast.",
     },
     3: {
@@ -419,11 +419,11 @@ QUIZ_CONFIG = {
         "t": "t4",
         "q": "AI data centers already use ~1.5% of global electricity, projected to nearly triple by 2030. Dublin banned new data centers in 2022 because they threatened 18% of Ireland's grid. **What does this tell us?**",
         "o": [
-            "A) It tells us data centers should be banned everywhere \u2014 no amount of economic benefit justifies this level of energy consumption.",
-            "B) AI's energy appetite has grown so large that it now competes with entire countries for electricity, forcing governments to choose between tech growth and grid stability.",
-            "C) Dublin overreacted \u2014 1.5% of global electricity is small, and renewables will scale fast enough to cover the growth without any policy intervention.",
+            "A) Data centers should be banned everywhere \u2014 they use way too much electricity and it\u2019s not worth it.",
+            "B) AI now uses so much electricity that it competes with entire countries for power, and governments have to make tough choices about it.",
+            "C) Dublin overreacted \u2014 1.5% isn\u2019t much, and clean energy like solar and wind will grow fast enough on its own.",
         ],
-        "a": "B) AI's energy appetite has grown so large that it now competes with entire countries for electricity, forcing governments to choose between tech growth and grid stability.",
+        "a": "B) AI now uses so much electricity that it competes with entire countries for power, and governments have to make tough choices about it.",
         "success": "Scale mapped. AI now uses as much electricity as entire nations \u2014 and it's growing faster than renewable energy can keep up.",
     },
 }
@@ -1246,7 +1246,7 @@ function aceToggleComparison() {
     barsEl.dataset.init = '1';
     var models = [
         {name:'GPT-3', energy:1287, water:700000, co2:502, year:2020, icon:'\\u{1F916}', fact:"That's like driving a car around the Earth 60 times"},
-        {name:'GPT-4', energy:62000, water:34000000, co2:24000, year:2023, icon:'\\u{1F9E0}', fact:"Equivalent to ~5,400 U.S. homes' annual electricity"},
+        {name:'GPT-4', energy:62000, water:34000000, co2:24000, year:2023, icon:'\\u{1F9E0}', fact:"Equivalent to ~6,000 U.S. homes' annual electricity"},
         {name:'Llama 3', energy:39000, water:21000000, co2:15000, year:2024, icon:'\\u{1F999}', fact:'Could fill 8 Olympic swimming pools with the water used'}
     ];
     var selected = -1;

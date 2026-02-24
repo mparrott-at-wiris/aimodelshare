@@ -401,13 +401,13 @@ MODULES = [
 QUIZ_CONFIG = {
     2: {
         "t": "t1",
-        "q": "Un amigo dice: *\u2018Una pregunta a la IA solo gasta medio vaso de agua \u2014 \u00bfa qui\u00e9n le importa?\u2019* \u00bfPor qu\u00e9 deber\u00eda importarte?",
+        "q": "Un amigo dice: *\u2018Una pregunta a la IA solo gasta una botella de agua \u2014 \u00bfa qui\u00e9n le importa?\u2019* \u00bfPor qu\u00e9 deber\u00eda importarte?",
         "o": [
-            "A) Tu amigo tiene raz\u00f3n \u2014 medio vaso no es nada.",
-            "B) Una pregunta es peque\u00f1a, pero 200 millones de personas haciendo m\u00e1s de 50 preguntas al d\u00eda suman miles de millones de vasos de agua cada a\u00f1o. Las cosas peque\u00f1as se vuelven enormes cuando todos las hacen.",
+            "A) Tu amigo tiene raz\u00f3n \u2014 una botella no es nada.",
+            "B) Una pregunta es peque\u00f1a, pero 200 millones de personas haciendo m\u00e1s de 50 preguntas al d\u00eda suman miles de millones de botellas de agua cada a\u00f1o. Las cosas peque\u00f1as se vuelven enormes cuando todos las hacen.",
             "C) El agua no importa \u2014 el verdadero problema es solo la electricidad.",
         ],
-        "a": "B) Una pregunta es peque\u00f1a, pero 200 millones de personas haciendo m\u00e1s de 50 preguntas al d\u00eda suman miles de millones de vasos de agua cada a\u00f1o. Las cosas peque\u00f1as se vuelven enormes cuando todos las hacen.",
+        "a": "B) Una pregunta es peque\u00f1a, pero 200 millones de personas haciendo m\u00e1s de 50 preguntas al d\u00eda suman miles de millones de botellas de agua cada a\u00f1o. Las cosas peque\u00f1as se vuelven enormes cuando todos las hacen.",
         "success": "<strong>\u00a1Acertaste!</strong> Una pregunta es peque\u00f1a. \u00bfPero 200 millones de personas haciendo m\u00e1s de 50 preguntas al d\u00eda? Eso se acumula r\u00e1pido.",
     },
     3: {
@@ -436,11 +436,11 @@ QUIZ_CONFIG = {
         "t": "t4",
         "q": "Los centros de datos de IA ya consumen ~1,5% de la electricidad mundial, y se prev\u00e9 que casi se triplique para 2030. Dubl\u00edn prohibi\u00f3 nuevos centros de datos en 2022 porque amenazaban el 18% de la red el\u00e9ctrica de Irlanda. **\u00bfQu\u00e9 nos dice esto?**",
         "o": [
-            "A) Nos dice que los centros de datos deber\u00edan prohibirse en todas partes \u2014 ning\u00fan beneficio econ\u00f3mico justifica este nivel de consumo energ\u00e9tico.",
-            "B) El apetito energ\u00e9tico de la IA ha crecido tanto que ahora compite con pa\u00edses enteros por la electricidad, obligando a los gobiernos a elegir entre crecimiento tecnol\u00f3gico y estabilidad de la red.",
-            "C) Dubl\u00edn reaccion\u00f3 de forma exagerada \u2014 el 1,5% de la electricidad mundial es poco, y las renovables escalar\u00e1n lo suficientemente r\u00e1pido para cubrir el crecimiento sin intervenci\u00f3n pol\u00edtica.",
+            "A) Los centros de datos deber\u00edan prohibirse en todas partes \u2014 usan demasiada electricidad y no vale la pena.",
+            "B) La IA ya usa tanta electricidad que compite con pa\u00edses enteros por la energ\u00eda, y los gobiernos tienen que tomar decisiones dif\u00edciles al respecto.",
+            "C) Dubl\u00edn reaccion\u00f3 de forma exagerada \u2014 el 1,5% no es mucho, y las energ\u00edas limpias como la solar y la e\u00f3lica crecer\u00e1n lo suficiente por s\u00ed solas.",
         ],
-        "a": "B) El apetito energ\u00e9tico de la IA ha crecido tanto que ahora compite con pa\u00edses enteros por la electricidad, obligando a los gobiernos a elegir entre crecimiento tecnol\u00f3gico y estabilidad de la red.",
+        "a": "B) La IA ya usa tanta electricidad que compite con pa\u00edses enteros por la energ\u00eda, y los gobiernos tienen que tomar decisiones dif\u00edciles al respecto.",
         "success": "Escala mapeada. La IA ya consume tanta electricidad como naciones enteras \u2014 y crece m\u00e1s r\u00e1pido de lo que las energ\u00edas renovables pueden seguir.",
     },
 }
@@ -1263,7 +1263,7 @@ function aceToggleComparison() {
     barsEl.dataset.init = '1';
     var models = [
         {name:'GPT-3', energy:1287, water:700000, co2:502, year:2020, icon:'\\u{1F916}', fact:"Equivale a conducir un coche alrededor de la Tierra 60 veces"},
-        {name:'GPT-4', energy:62000, water:34000000, co2:24000, year:2023, icon:'\\u{1F9E0}', fact:"Equivalente a la electricidad anual de ~5400 hogares de EE. UU."},
+        {name:'GPT-4', energy:62000, water:34000000, co2:24000, year:2023, icon:'\\u{1F9E0}', fact:"Equivalente a la electricidad anual de ~6000 hogares de EE. UU."},
         {name:'Llama 3', energy:39000, water:21000000, co2:15000, year:2024, icon:'\\u{1F999}', fact:'Podr\\u00eda llenar 8 piscinas ol\\u00edmpicas con el agua utilizada'}
     ];
     var selected = -1;

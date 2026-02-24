@@ -401,13 +401,13 @@ MODULES = [
 QUIZ_CONFIG = {
     2: {
         "t": "t1",
-        "q": "Un amic diu: *\u2018Una pregunta a la IA nom\u00e9s gasta mig got d\u2019aigua \u2014 a qui li importa?\u2019* Per qu\u00e8 t\u2019hauria d\u2019importar?",
+        "q": "Un amic diu: *\u2018Una pregunta a la IA nom\u00e9s gasta una ampolla d\u2019aigua \u2014 a qui li importa?\u2019* Per qu\u00e8 t\u2019hauria d\u2019importar?",
         "o": [
-            "A) El teu amic t\u00e9 ra\u00f3 \u2014 mig got no \u00e9s res.",
-            "B) Una pregunta \u00e9s petita, per\u00f2 200 milions de persones fent m\u00e9s de 50 preguntes al dia sumen milers de milions de gots d\u2019aigua cada any. Les coses petites es tornen enormes quan tothom les fa.",
+            "A) El teu amic t\u00e9 ra\u00f3 \u2014 una ampolla no \u00e9s res.",
+            "B) Una pregunta \u00e9s petita, per\u00f2 200 milions de persones fent m\u00e9s de 50 preguntes al dia sumen milers de milions d\u2019ampolles d\u2019aigua cada any. Les coses petites es tornen enormes quan tothom les fa.",
             "C) L\u2019aigua no importa \u2014 el veritable problema \u00e9s nom\u00e9s l\u2019electricitat.",
         ],
-        "a": "B) Una pregunta \u00e9s petita, per\u00f2 200 milions de persones fent m\u00e9s de 50 preguntes al dia sumen milers de milions de gots d\u2019aigua cada any. Les coses petites es tornen enormes quan tothom les fa.",
+        "a": "B) Una pregunta \u00e9s petita, per\u00f2 200 milions de persones fent m\u00e9s de 50 preguntes al dia sumen milers de milions d\u2019ampolles d\u2019aigua cada any. Les coses petites es tornen enormes quan tothom les fa.",
         "success": "<strong>Encertat!</strong> Una pregunta \u00e9s petita. Per\u00f2 200 milions de persones fent m\u00e9s de 50 preguntes al dia? Aix\u00f2 s\u2019acumula r\u00e0pid.",
     },
     3: {
@@ -436,11 +436,11 @@ QUIZ_CONFIG = {
         "t": "t4",
         "q": "Els centres de dades d'IA ja consumeixen ~1,5% de l'electricitat mundial, i es preveu que gaireb\u00e9 es tripliqui per al 2030. Dubl\u00edn va prohibir nous centres de dades el 2022 perqu\u00e8 amena\u00e7aven el 18% de la xarxa el\u00e8ctrica d'Irlanda. **Qu\u00e8 ens diu aix\u00f2?**",
         "o": [
-            "A) Ens diu que els centres de dades s'haurien de prohibir a tot arreu \u2014 cap benefici econ\u00f2mic justifica aquest nivell de consum energ\u00e8tic.",
-            "B) L'apetit energ\u00e8tic de la IA ha crescut tant que ara competeix amb pa\u00efsos sencers per l'electricitat, obligant els governs a triar entre creixement tecnol\u00f2gic i estabilitat de la xarxa.",
-            "C) Dubl\u00edn va reaccionar de manera exagerada \u2014 l'1,5% de l'electricitat mundial \u00e9s poc, i les renovables escalaran prou r\u00e0pidament per cobrir el creixement sense intervenci\u00f3 pol\u00edtica.",
+            "A) Els centres de dades s'haurien de prohibir a tot arreu \u2014 fan servir massa electricitat i no val la pena.",
+            "B) La IA ja fa servir tanta electricitat que competeix amb pa\u00efsos sencers per l'energia, i els governs han de prendre decisions dif\u00edcils al respecte.",
+            "C) Dubl\u00edn va reaccionar de manera exagerada \u2014 l'1,5% no \u00e9s gaire, i les energies netes com la solar i l'e\u00f2lica creixeran prou per si soles.",
         ],
-        "a": "B) L'apetit energ\u00e8tic de la IA ha crescut tant que ara competeix amb pa\u00efsos sencers per l'electricitat, obligant els governs a triar entre creixement tecnol\u00f2gic i estabilitat de la xarxa.",
+        "a": "B) La IA ja fa servir tanta electricitat que competeix amb pa\u00efsos sencers per l'energia, i els governs han de prendre decisions dif\u00edcils al respecte.",
         "success": "Escala mapeada. La IA ja consumeix tanta electricitat com nacions senceres \u2014 i creix m\u00e9s r\u00e0pidament del que les energies renovables poden seguir.",
     },
 }
@@ -1263,7 +1263,7 @@ function aceToggleComparison() {
     barsEl.dataset.init = '1';
     var models = [
         {name:'GPT-3', energy:1287, water:700000, co2:502, year:2020, icon:'\\u{1F916}', fact:"Equivalent a conduir un cotxe al voltant de la Terra 60 vegades"},
-        {name:'GPT-4', energy:62000, water:34000000, co2:24000, year:2023, icon:'\\u{1F9E0}', fact:"Equivalent a l'electricitat anual de ~5400 llars dels EUA"},
+        {name:'GPT-4', energy:62000, water:34000000, co2:24000, year:2023, icon:'\\u{1F9E0}', fact:"Equivalent a l'electricitat anual de ~6000 llars dels EUA"},
         {name:'Llama 3', energy:39000, water:21000000, co2:15000, year:2024, icon:'\\u{1F999}', fact:"Podria omplir 8 piscines ol\\u00edmpiques amb l'aigua utilitzada"}
     ];
     var selected = -1;
