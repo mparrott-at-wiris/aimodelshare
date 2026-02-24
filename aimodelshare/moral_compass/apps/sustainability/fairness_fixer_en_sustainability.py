@@ -1136,6 +1136,39 @@ css = """
 .cto-impact-card .cto-impact-icon { font-size: 2rem; flex-shrink: 0; }
 .cto-impact-card .cto-impact-text { font-size: 1.05rem; font-weight: 700; color: var(--cto-text); }
 .cto-impact-card .cto-impact-detail { font-size: 0.9rem; color: var(--cto-text-dim); margin-top: 2px; }
+
+/* Collapsible post-choice review panel */
+.cto-review-details {
+    margin-top: 16px;
+    border-radius: 14px;
+    background: var(--cto-input-bg);
+    border: 1px solid var(--cto-border-color);
+    overflow: hidden;
+}
+.cto-review-details[open] {
+    background: transparent;
+    border-color: transparent;
+}
+.cto-review-summary {
+    padding: 14px 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--cto-accent);
+    list-style: none;
+    text-align: center;
+    letter-spacing: 0.5px;
+    font-family: 'Outfit', sans-serif;
+}
+.cto-review-summary::-webkit-details-marker { display: none; }
+.cto-review-summary::marker { display: none; content: ''; }
+.cto-review-summary:hover {
+    color: var(--cto-text);
+    background: var(--cto-hover-bg);
+}
+.cto-review-details[open] .cto-review-summary {
+    border-bottom: 1px solid var(--cto-border-color);
+}
 """
 
 
@@ -1361,9 +1394,26 @@ function ctoConfirmDecision(roundIdx) {
     window.ctoState = ctoApply(window.ctoState, choice.fx);
     window.ctoChoices.push(choice);
 
-    // Hide choices container
+    // Convert choices to collapsible review panel
     var choicesContainer = document.getElementById('cto-choices-container-' + roundIdx);
-    if (choicesContainer) choicesContainer.style.display = 'none';
+    if (choicesContainer) {
+        var confirmBtn = document.getElementById('cto-confirm-btn-' + roundIdx);
+        if (confirmBtn) confirmBtn.style.display = 'none';
+        var allCards = choicesContainer.querySelectorAll('.cto-choice-card');
+        for (var ci = 0; ci < allCards.length; ci++) {
+            allCards[ci].onclick = null;
+            allCards[ci].style.cursor = 'default';
+            allCards[ci].style.pointerEvents = 'none';
+            allCards[ci].style.opacity = '0.55';
+        }
+        var selCard = document.getElementById('cto-choice-' + roundIdx + '-' + choiceIdx);
+        if (selCard) { selCard.style.opacity = '1'; }
+        var existingHTML = choicesContainer.innerHTML;
+        choicesContainer.innerHTML = '<details class="cto-review-details">'
+            + '<summary class="cto-review-summary">\ud83d\udcd6 Review All Options</summary>'
+            + '<div style="margin-top:12px;">' + existingHTML + '</div>'
+            + '</details>';
+    }
 
     // Build feedback
     var tc = {best:"var(--cto-success)", good:"var(--cto-warning)", poor:"var(--cto-error)"};
