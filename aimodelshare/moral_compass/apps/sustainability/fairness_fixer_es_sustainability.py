@@ -410,11 +410,11 @@ QUIZ_CONFIG = {
         "t": "t7",
         "q": "Alguien dice: *\u2018\u00a1Los usuarios quieren la mejor IA siempre!\u2019* \u00bfPor qu\u00e9 usar la IA m\u00e1s grande para cada pregunta es mala idea?",
         "o": [
-            "A) Para preguntas f\u00e1ciles, una IA peque\u00f1a funciona igual de bien \u2014 y usa 50 veces menos energ\u00eda. \u00bfPara qu\u00e9 usar un cohete para ir a la tienda de la esquina?",
+            "A) Para preguntas f\u00e1ciles, una IA peque\u00f1a funciona igual de bien \u2014 y usa mucha menos energ\u00eda. \u00bfPara qu\u00e9 usar un cohete para ir a la tienda de la esquina?",
             "B) Deber\u00edamos usar siempre la IA m\u00e1s peque\u00f1a, aunque d\u00e9 malas respuestas a preguntas dif\u00edciles.",
             "C) El tama\u00f1o de la IA no cambia cu\u00e1nta energ\u00eda usa \u2014 el ordenador usa la misma potencia sin importar qu\u00e9.",
         ],
-        "a": "A) Para preguntas f\u00e1ciles, una IA peque\u00f1a funciona igual de bien \u2014 y usa 50 veces menos energ\u00eda. \u00bfPara qu\u00e9 usar un cohete para ir a la tienda de la esquina?",
+        "a": "A) Para preguntas f\u00e1ciles, una IA peque\u00f1a funciona igual de bien \u2014 y usa mucha menos energ\u00eda. \u00bfPara qu\u00e9 usar un cohete para ir a la tienda de la esquina?",
         "success": "<strong>\u00a1Eficiencia desbloqueada!</strong> As\u00ed es como trabajan las empresas de IA m\u00e1s inteligentes \u2014 ajustan el tama\u00f1o del modelo a cada pregunta.",
     },
     4: {
@@ -1245,7 +1245,7 @@ window.CTO_ROUNDS = [
       choices:[
         { id:"a", label:"Ajustar el tama\\u00f1o del modelo a la dificultad", icon:"\\ud83e\\udea9",
           fx:{energy:-40,water:-30,co2:-38,cost:-35,greenScore:22,reputation:15},
-          fb:"\\u00a1Genial! 8 de cada 10 preguntas ahora usan el modelo de IA peque\\u00f1o \\u2014 usa 50 veces menos energ\\u00eda, y nadie nota la diferencia. \\u00a1As\\u00ed es como trabajan las empresas de IA m\\u00e1s inteligentes!", tier:"best" },
+          fb:"\\u00a1Genial! 8 de cada 10 preguntas ahora usan el modelo de IA peque\\u00f1o \\u2014 usa mucha menos energ\\u00eda, y nadie nota la diferencia. \\u00a1As\\u00ed es como trabajan las empresas de IA m\\u00e1s inteligentes!", tier:"best" },
         { id:"b", label:"Entrenar una IA m\\u00e1s peque\\u00f1a y lista", icon:"\\ud83e\\uddec",
           fx:{energy:-25,water:-18,co2:-22,cost:-20,greenScore:14,reputation:10},
           fb:"\\u00a1Bien! El modelo de IA m\\u00e1s peque\\u00f1o aprendi\\u00f3 casi todos los trucos del grande. Maneja 9 de cada 10 preguntas sin problema, usando mucha menos energ\\u00eda.", tier:"good" },

@@ -393,11 +393,11 @@ QUIZ_CONFIG = {
         "t": "t7",
         "q": "Someone says: *\u2018Users want the best AI every time!\u2019* Why is using the biggest AI for every question a bad idea?",
         "o": [
-            "A) For easy questions, a small AI works just as well \u2014 and uses 50x less energy. Why use a rocket to go to the corner store?",
+            "A) For easy questions, a small AI works just as well \u2014 and uses way less energy. Why use a rocket to go to the corner store?",
             "B) We should always use the smallest AI, even if it gives bad answers to hard questions.",
             "C) The size of the AI doesn\u2019t change how much energy it uses \u2014 the computer uses the same power no matter what.",
         ],
-        "a": "A) For easy questions, a small AI works just as well \u2014 and uses 50x less energy. Why use a rocket to go to the corner store?",
+        "a": "A) For easy questions, a small AI works just as well \u2014 and uses way less energy. Why use a rocket to go to the corner store?",
         "success": "<strong>Efficiency Unlocked!</strong> This is how the smartest AI companies work \u2014 match the right-sized model to each question.",
     },
     4: {
@@ -1228,7 +1228,7 @@ window.CTO_ROUNDS = [
       choices:[
         { id:"a", label:"Match Model Size to Question Difficulty", icon:"\\ud83e\\udea9",
           fx:{energy:-40,water:-30,co2:-38,cost:-35,greenScore:22,reputation:15},
-          fb:"Genius! 8 out of 10 questions now use the tiny AI model \\u2014 it uses 50x less energy, and nobody notices the difference. This is exactly how the smartest AI companies work.", tier:"best" },
+          fb:"Genius! 8 out of 10 questions now use the tiny AI model \\u2014 it uses way less energy, and nobody notices the difference. This is exactly how the smartest AI companies work.", tier:"best" },
         { id:"b", label:"Train a Smaller, Smarter AI", icon:"\\ud83e\\uddec",
           fx:{energy:-25,water:-18,co2:-22,cost:-20,greenScore:14,reputation:10},
           fb:"Nice! The smaller AI model learned most of the big one\\u2019s tricks. It handles 9 out of 10 questions just fine, using way less energy.", tier:"good" },

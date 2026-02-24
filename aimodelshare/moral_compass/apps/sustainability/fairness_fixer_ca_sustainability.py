@@ -410,11 +410,11 @@ QUIZ_CONFIG = {
         "t": "t7",
         "q": "Alg\u00fa diu: *\u2018Els usuaris volen la millor IA sempre!\u2019* Per qu\u00e8 fer servir la IA m\u00e9s gran per a cada pregunta \u00e9s mala idea?",
         "o": [
-            "A) Per a preguntes f\u00e0cils, una IA petita funciona igual de b\u00e9 \u2014 i fa servir 50 vegades menys energia. Per qu\u00e8 fer servir un coet per anar a la botiga de la cantonada?",
+            "A) Per a preguntes f\u00e0cils, una IA petita funciona igual de b\u00e9 \u2014 i fa servir molta menys energia. Per qu\u00e8 fer servir un coet per anar a la botiga de la cantonada?",
             "B) Haur\u00edem de fer servir sempre la IA m\u00e9s petita, encara que doni males respostes a preguntes dif\u00edcils.",
             "C) La mida de la IA no canvia quanta energia fa servir \u2014 l\u2019ordinador fa servir la mateixa pot\u00e8ncia sense importar qu\u00e8.",
         ],
-        "a": "A) Per a preguntes f\u00e0cils, una IA petita funciona igual de b\u00e9 \u2014 i fa servir 50 vegades menys energia. Per qu\u00e8 fer servir un coet per anar a la botiga de la cantonada?",
+        "a": "A) Per a preguntes f\u00e0cils, una IA petita funciona igual de b\u00e9 \u2014 i fa servir molta menys energia. Per qu\u00e8 fer servir un coet per anar a la botiga de la cantonada?",
         "success": "<strong>Efici\u00e8ncia desbloquejada!</strong> Aix\u00ed \u00e9s com treballen les empreses d\u2019IA m\u00e9s intel\u00b7ligents \u2014 ajusten la mida del model a cada pregunta.",
     },
     4: {
@@ -1245,7 +1245,7 @@ window.CTO_ROUNDS = [
       choices:[
         { id:"a", label:"Ajustar la mida del model a la dificultat", icon:"\\ud83e\\udea9",
           fx:{energy:-40,water:-30,co2:-38,cost:-35,greenScore:22,reputation:15},
-          fb:"Genial! 8 de cada 10 preguntes ara fan servir el model d\\u2019IA petit \\u2014 fa servir 50 vegades menys energia, i ning\\u00fa nota la difer\\u00e8ncia. Aix\\u00ed \\u00e9s exactament com treballen les empreses d\\u2019IA m\\u00e9s intel\\u00b7ligents.", tier:"best" },
+          fb:"Genial! 8 de cada 10 preguntes ara fan servir el model d\\u2019IA petit \\u2014 fa servir molta menys energia, i ning\\u00fa nota la difer\\u00e8ncia. Aix\\u00ed \\u00e9s exactament com treballen les empreses d\\u2019IA m\\u00e9s intel\\u00b7ligents.", tier:"best" },
         { id:"b", label:"Entrenar una IA m\\u00e9s petita i llesta", icon:"\\ud83e\\uddec",
           fx:{energy:-25,water:-18,co2:-22,cost:-20,greenScore:14,reputation:10},
           fb:"Bona idea! El model d\\u2019IA m\\u00e9s petit ha apr\\u00e8s la majoria dels trucs del gran. Gestiona 9 de cada 10 preguntes perfectament, fent servir molta menys energia.", tier:"good" },
