@@ -282,7 +282,7 @@ MODULES = [
             choices=[
                 {"icon": "\u2600\ufe0f", "label": "Build a Solar Farm + Batteries", "desc": "Cover the roof and parking lots with solar panels. Add giant batteries for nighttime. Expensive, but NovaMind owns it forever."},
                 {"icon": "\U0001f32c\ufe0f", "label": "Buy Clean Energy from a Wind/Solar Farm", "desc": "Sign a deal to get electricity from a nearby wind or solar farm instead of the dirty grid."},
-                {"icon": "\U0001f4dc", "label": "Pay for Carbon Offsets", "desc": "Keep burning fossil fuels, but pay for trees to be planted somewhere else. This is called a &lt;strong&gt;carbon offset&lt;/strong&gt; &mdash; it looks good on paper, but the pollution stays the same."},
+                {"icon": "\U0001f4dc", "label": "Pay for Carbon Offsets", "desc": "Keep burning fossil fuels, but pay for trees to be planted somewhere else. This is called a <strong>carbon offset</strong> &mdash; it looks good on paper, but the pollution stays the same."},
             ],
         ),
     },

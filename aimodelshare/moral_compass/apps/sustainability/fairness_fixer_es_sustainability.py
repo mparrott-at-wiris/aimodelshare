@@ -299,7 +299,7 @@ MODULES = [
             choices=[
                 {"icon": "\u2600\ufe0f", "label": "Construir una granja solar + bater\u00edas", "desc": "Cubrir el tejado y los aparcamientos con paneles solares. A\u00f1adir bater\u00edas gigantes para la noche. Caro, pero NovaMind lo posee para siempre."},
                 {"icon": "\U0001f32c\ufe0f", "label": "Comprar energ\u00eda limpia de un parque e\u00f3lico/solar", "desc": "Firmar un acuerdo para obtener electricidad de un parque e\u00f3lico o solar cercano en vez de la red sucia."},
-                {"icon": "\U0001f4dc", "label": "Pagar por compensaciones de carbono", "desc": "Seguir quemando combustibles f\u00f3siles, pero pagar para que planten \u00e1rboles en otro lugar. Esto se llama una &lt;strong&gt;compensaci\u00f3n de carbono&lt;/strong&gt; &mdash; queda bien sobre el papel, pero la contaminaci\u00f3n sigue igual."},
+                {"icon": "\U0001f4dc", "label": "Pagar por compensaciones de carbono", "desc": "Seguir quemando combustibles f\u00f3siles, pero pagar para que planten \u00e1rboles en otro lugar. Esto se llama una <strong>compensaci\u00f3n de carbono</strong> &mdash; queda bien sobre el papel, pero la contaminaci\u00f3n sigue igual."},
             ],
         ),
     },
