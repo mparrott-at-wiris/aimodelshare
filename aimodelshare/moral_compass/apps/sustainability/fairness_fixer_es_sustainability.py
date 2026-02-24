@@ -317,7 +317,7 @@ MODULES = [
             question="\u00bfC\u00f3mo deber\u00eda NovaMind manejar las preguntas f\u00e1ciles vs. las dif\u00edciles?",
             choices=[
                 {"icon": "\U0001fa9c", "label": "Ajustar el tama\u00f1o del modelo a la dificultad", "desc": "Usar un modelo peque\u00f1o para preguntas f\u00e1ciles, uno mediano para las complicadas, y el m\u00e1s grande solo para las m\u00e1s dif\u00edciles. Como elegir la herramienta correcta para cada trabajo."},
-                {"icon": "\U0001f9ec", "label": "Entrenar una IA m\u00e1s peque\u00f1a y lista", "desc": "Ense\u00f1ar a un modelo mediano a hacer casi todo lo que puede el gigante. Un modelo que es suficiente para el 90% de las preguntas."},
+                {"icon": "\U0001f9ec", "label": "Entrenar una IA m\u00e1s peque\u00f1a y lista", "desc": "Ense\u00f1ar a un modelo mediano a hacer casi todo lo que puede el gigante. Un modelo que es suficiente para 8 de cada 10 preguntas."},
                 {"icon": "\U0001f4be", "label": "Solo guardar respuestas repetidas", "desc": "Recordar respuestas comunes para que la IA no las repita. Pero el modelo m\u00e1s grande sigue funcionando para todo lo nuevo."},
             ],
         ),
@@ -1248,7 +1248,7 @@ window.CTO_ROUNDS = [
           fb:"\\u00a1Genial! 8 de cada 10 preguntas ahora usan el modelo de IA peque\\u00f1o \\u2014 usa mucha menos energ\\u00eda, y nadie nota la diferencia. \\u00a1As\\u00ed es como trabajan las empresas de IA m\\u00e1s inteligentes!", tier:"best" },
         { id:"b", label:"Entrenar una IA m\\u00e1s peque\\u00f1a y lista", icon:"\\ud83e\\uddec",
           fx:{energy:-25,water:-18,co2:-22,cost:-20,greenScore:14,reputation:10},
-          fb:"\\u00a1Bien! El modelo de IA m\\u00e1s peque\\u00f1o aprendi\\u00f3 casi todos los trucos del grande. Maneja 9 de cada 10 preguntas sin problema, usando mucha menos energ\\u00eda.", tier:"good" },
+          fb:"\\u00a1Bien! El modelo de IA m\\u00e1s peque\\u00f1o aprendi\\u00f3 casi todos los trucos del grande. Maneja 8 de cada 10 preguntas sin problema, usando mucha menos energ\\u00eda.", tier:"good" },
         { id:"c", label:"Solo guardar respuestas repetidas", icon:"\\ud83d\\udcbe",
           fx:{energy:-10,water:-5,co2:-8,cost:-10,greenScore:5,reputation:3},
           fb:"Guardar respuestas ayuda un poco, pero la mayor\\u00eda de las preguntas son \\u00fanicas \\u2014 el modelo m\\u00e1s grande sigue funcionando casi siempre. Es como poner una tirita peque\\u00f1a en un problema grande.", tier:"poor" },

@@ -300,7 +300,7 @@ MODULES = [
             question="How should NovaMind handle easy vs. hard questions?",
             choices=[
                 {"icon": "\U0001fa9c", "label": "Match Model Size to Question Difficulty", "desc": "Use a small model for easy questions, a medium one for tricky ones, and the biggest only for the hardest. Like picking the right tool for the job."},
-                {"icon": "\U0001f9ec", "label": "Train a Smaller, Smarter AI", "desc": "Teach a medium-sized model to do almost everything the giant one can. One model that&#39;s good enough for 90% of questions."},
+                {"icon": "\U0001f9ec", "label": "Train a Smaller, Smarter AI", "desc": "Teach a medium-sized model to do almost everything the giant one can. One model that&#39;s good enough for 8 out of 10 questions."},
                 {"icon": "\U0001f4be", "label": "Just Save Repeat Answers", "desc": "Remember common answers so the AI doesn&#39;t re-think them. But the biggest model still runs for everything new."},
             ],
         ),
@@ -1231,7 +1231,7 @@ window.CTO_ROUNDS = [
           fb:"Genius! 8 out of 10 questions now use the tiny AI model \\u2014 it uses way less energy, and nobody notices the difference. This is exactly how the smartest AI companies work.", tier:"best" },
         { id:"b", label:"Train a Smaller, Smarter AI", icon:"\\ud83e\\uddec",
           fx:{energy:-25,water:-18,co2:-22,cost:-20,greenScore:14,reputation:10},
-          fb:"Nice! The smaller AI model learned most of the big one\\u2019s tricks. It handles 9 out of 10 questions just fine, using way less energy.", tier:"good" },
+          fb:"Nice! The smaller AI model learned most of the big one\\u2019s tricks. It handles 8 out of 10 questions just fine, using way less energy.", tier:"good" },
         { id:"c", label:"Just Save Repeat Answers", icon:"\\ud83d\\udcbe",
           fx:{energy:-10,water:-5,co2:-8,cost:-10,greenScore:5,reputation:3},
           fb:"Saving answers helps a little, but most questions are unique \\u2014 the biggest model still runs almost every time. It\\u2019s like putting a tiny bandage on a big problem.", tier:"poor" },

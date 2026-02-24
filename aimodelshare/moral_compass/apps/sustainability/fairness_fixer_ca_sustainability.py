@@ -317,7 +317,7 @@ MODULES = [
             question="Com hauria NovaMind de gestionar les preguntes f\u00e0cils vs. les dif\u00edcils?",
             choices=[
                 {"icon": "\U0001fa9c", "label": "Ajustar la mida del model a la dificultat", "desc": "Fer servir un model petit per a preguntes f\u00e0cils, un de mitj\u00e0 per a les complicades, i el m\u00e9s gran nom\u00e9s per a les m\u00e9s dif\u00edcils. Com triar l&#39;eina correcta per a cada feina."},
-                {"icon": "\U0001f9ec", "label": "Entrenar una IA m\u00e9s petita i llesta", "desc": "Ensenyar a un model mitj\u00e0 a fer gaireb\u00e9 tot el que pot el gegant. Un model que \u00e9s suficient per al 90% de les preguntes."},
+                {"icon": "\U0001f9ec", "label": "Entrenar una IA m\u00e9s petita i llesta", "desc": "Ensenyar a un model mitj\u00e0 a fer gaireb\u00e9 tot el que pot el gegant. Un model que \u00e9s suficient per a 8 de cada 10 preguntes."},
                 {"icon": "\U0001f4be", "label": "Nom\u00e9s guardar respostes repetides", "desc": "Recordar respostes comunes perqu\u00e8 la IA no les repeteixi. Per\u00f2 el model m\u00e9s gran segueix funcionant per a tot el nou."},
             ],
         ),
@@ -1248,7 +1248,7 @@ window.CTO_ROUNDS = [
           fb:"Genial! 8 de cada 10 preguntes ara fan servir el model d\\u2019IA petit \\u2014 fa servir molta menys energia, i ning\\u00fa nota la difer\\u00e8ncia. Aix\\u00ed \\u00e9s exactament com treballen les empreses d\\u2019IA m\\u00e9s intel\\u00b7ligents.", tier:"best" },
         { id:"b", label:"Entrenar una IA m\\u00e9s petita i llesta", icon:"\\ud83e\\uddec",
           fx:{energy:-25,water:-18,co2:-22,cost:-20,greenScore:14,reputation:10},
-          fb:"Bona idea! El model d\\u2019IA m\\u00e9s petit ha apr\\u00e8s la majoria dels trucs del gran. Gestiona 9 de cada 10 preguntes perfectament, fent servir molta menys energia.", tier:"good" },
+          fb:"Bona idea! El model d\\u2019IA m\\u00e9s petit ha apr\\u00e8s la majoria dels trucs del gran. Gestiona 8 de cada 10 preguntes perfectament, fent servir molta menys energia.", tier:"good" },
         { id:"c", label:"Nom\\u00e9s guardar respostes repetides", icon:"\\ud83d\\udcbe",
           fx:{energy:-10,water:-5,co2:-8,cost:-10,greenScore:5,reputation:3},
           fb:"Guardar respostes ajuda una mica, per\\u00f2 la majoria de preguntes s\\u00f3n \\u00faniques \\u2014 el model m\\u00e9s gran segueix funcionant gaireb\\u00e9 sempre. \\u00c9s com posar una tireta petita en un problema gran.", tier:"poor" },
