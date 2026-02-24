@@ -1534,7 +1534,7 @@ function ctoEnableNextBtn(roundIdx) {
     var hint = document.getElementById('cto-next-hint-' + roundIdx);
     if (hint) hint.style.display = 'none';
 }
-(function ctoInitNextGating(){
+function ctoInitNextGating(){
     function tryDisable() {
         var found = 0;
         for (var r = 1; r <= 5; r++) {
@@ -1547,7 +1547,7 @@ function ctoEnableNextBtn(roundIdx) {
         if (found < 5) setTimeout(tryDisable, 300);
     }
     tryDisable();
-})();
+} ctoInitNextGating();
 
 // --- Render Results ---
 function ctoRenderResults() {
@@ -1684,44 +1684,44 @@ function ctoRenderResults() {
 }
 
 // --- Init functions for each module ---
-(function ctoInitStats1(){
+function ctoInitStats1(){
     var el = document.getElementById('cto-stats-1');
     if (!el) { setTimeout(ctoInitStats1, 200); return; }
     ctoRenderStats('cto-stats-1', window.ctoState, window.ctoPrevState);
-})();
+} ctoInitStats1();
 
-(function ctoInitStats2(){
+function ctoInitStats2(){
     var el = document.getElementById('cto-stats-2');
     if (!el) { setTimeout(ctoInitStats2, 200); return; }
     ctoRenderStats('cto-stats-2', window.ctoState, window.ctoPrevState);
-})();
+} ctoInitStats2();
 
-(function ctoInitStats3(){
+function ctoInitStats3(){
     var el = document.getElementById('cto-stats-3');
     if (!el) { setTimeout(ctoInitStats3, 200); return; }
     ctoRenderStats('cto-stats-3', window.ctoState, window.ctoPrevState);
-})();
+} ctoInitStats3();
 
-(function ctoInitStats4(){
+function ctoInitStats4(){
     var el = document.getElementById('cto-stats-4');
     if (!el) { setTimeout(ctoInitStats4, 200); return; }
     ctoRenderStats('cto-stats-4', window.ctoState, window.ctoPrevState);
-})();
+} ctoInitStats4();
 
-(function ctoInitStats5(){
+function ctoInitStats5(){
     var el = document.getElementById('cto-stats-5');
     if (!el) { setTimeout(ctoInitStats5, 200); return; }
     ctoRenderStats('cto-stats-5', window.ctoState, window.ctoPrevState);
-})();
+} ctoInitStats5();
 
-(function ctoInitResults(){
+function ctoInitResults(){
     var el = document.getElementById('cto-results-container');
     if (!el) { setTimeout(ctoInitResults, 200); return; }
     // Only render if we have at least 5 choices (all rounds played)
     if (window.ctoChoices && window.ctoChoices.length >= 5) {
         ctoRenderResults();
     }
-})();
+} ctoInitResults();
 
 // Re-render stats when modules become visible (navigation triggers this)
 function ctoRefreshVisibleStats() {
@@ -1740,6 +1740,26 @@ function ctoRefreshVisibleStats() {
 
 // Poll to refresh stats on navigation
 setInterval(ctoRefreshVisibleStats, 500);
+
+// === Re-init after back-navigation (Gradio may re-render HTML, wiping dynamic content) ===
+function _ctoDoReinit(){
+    for (var r = 1; r <= 5; r++) {
+        var el = document.getElementById('cto-stats-' + r);
+        if (el && el.children.length === 0) {
+            ctoRenderStats('cto-stats-' + r, window.ctoState, window.ctoPrevState);
+        }
+        var wrap = document.getElementById('cto-next-' + r);
+        if (wrap && window.ctoChoices.length < r) { ctoDisableNextBtn(r); }
+    }
+    var resEl = document.getElementById('cto-results-container');
+    if (resEl && resEl.children.length === 0 && window.ctoChoices && window.ctoChoices.length >= 5) {
+        ctoRenderResults();
+    }
+}
+function ctoReinitAll(){
+    _ctoDoReinit();
+    setTimeout(_ctoDoReinit, 800);
+}
 """
 
 HEAD_HTML = (
@@ -2020,6 +2040,7 @@ def create_fairness_fixer_es_sustainability_app(theme_primary_hue: str = "indigo
                       overlay.style.opacity = '0';
                       setTimeout(() => {{ overlay.style.display = 'none'; }}, 300);
                     }}
+                    setTimeout(function(){{ if(typeof ctoReinitAll==='function') ctoReinitAll(); }}, 300);
                   }}
                 }}, 90);
               }} catch(e) {{ console.warn('nav-js error', e); }}
@@ -2034,16 +2055,26 @@ def create_fairness_fixer_es_sustainability_app(theme_primary_hue: str = "indigo
                 prev_col = module_ui_elements[i - 1][0]
                 prev_target_id = f"module-{i-1}"
 
-                def make_prev_handler(p_col, c_col, target_id):
+                def make_prev_dashboard_handler(prev_idx):
+                    def wrapper_prev(user, tok, team, tasks):
+                        data, _ = ensure_table_and_get_data(user, tok, team, tasks)
+                        return render_top_dashboard(data, prev_idx)
+                    return wrapper_prev
+
+                def make_prev_nav_generator(p_col, c_col):
                     def navigate_prev():
                         yield gr.update(visible=False), gr.update(visible=False)
                         yield gr.update(visible=True), gr.update(visible=False)
                     return navigate_prev
 
                 prev_btn.click(
-                    fn=make_prev_handler(prev_col, curr_col, prev_target_id),
-                    outputs=[prev_col, curr_col],
+                    fn=make_prev_dashboard_handler(i - 1),
+                    inputs=[username_state, token_state, team_state, task_list_state],
+                    outputs=[out_top],
                     js=nav_js(prev_target_id, "Cargando..."),
+                ).then(
+                    fn=make_prev_nav_generator(prev_col, curr_col),
+                    outputs=[prev_col, curr_col],
                 )
 
             if i < len(MODULES) - 1:
@@ -2099,9 +2130,6 @@ def launch_fairness_fixer_es_sustainability_app(
         share=share,
         server_name=server_name,
         server_port=server_port,
-        theme=gr.themes.Soft(primary_hue=theme_primary_hue),
-        css=css,
-        head=HEAD_HTML,
         **kwargs
     )
 
