@@ -194,11 +194,10 @@ MODULES = [
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
                     <div class="ace-section-label">01 / Cada consulta compta</div>
-                    <h2 class="ace-heading" id="ace-m1-typewriter-text" style="min-height:2.4em;"></h2>
-                    <span class="ace-cursor" style="display:inline-block; width:2px; height:1.1em; background:var(--ace-accent); margin-left:2px; animation:aceBlink 0.7s step-end infinite; vertical-align:text-bottom;"></span>
+                    <h2 class="ace-heading" style="min-height:2.4em;"><span id="ace-m1-typewriter-text"></span><span style="display:inline-block; width:2px; height:1.1em; background:var(--ace-accent); margin-left:2px; animation:aceBlink 0.7s step-end infinite; vertical-align:text-bottom;"></span></h2>
                 </div>
                 <div id="ace-m1-reveal-content" style="opacity:0; transform:translateY(20px); transition:opacity 0.6s ease, transform 0.6s ease;">
-                    <p class="ace-paragraph">Investigadors de la UC Riverside van descobrir que una consulta d'IA de ~100 paraules consumeix aproximadament <strong style="color:var(--ace-text); font-weight:600;">mig litre d'aigua</strong> &mdash; m&eacute;s o menys una ampolla est&agrave;ndard. Aquesta aigua refrigera els enormes xips dels servidors. L'energia? Equivalent a mirar la televisi&oacute; durant <strong style="color:var(--ace-text); font-weight:600;">9 segons</strong>.</p>
+                    <p class="ace-paragraph">Investigadors de la UC Riverside van descobrir que una consulta d'IA (una pregunta o instrucci&oacute; que escrius a un xatbot com ChatGPT) de ~100 paraules consumeix aproximadament <strong style="color:var(--ace-text); font-weight:600;">mig litre d'aigua</strong> &mdash; m&eacute;s o menys una ampolla est&agrave;ndard. Aquesta aigua refrigera els enormes xips dels servidors. L'energia? Equivalent a mirar la televisi&oacute; durant <strong style="color:var(--ace-text); font-weight:600;">9 segons</strong>.</p>
                     <p class="ace-paragraph" style="font-size:1rem;">No sembla gaire, oi? Per&ograve; pensa en quantes consultes envies al dia...</p>
                     <div class="ace-card">
                         <label style="display:block; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">Quantes consultes d'IA envies al dia?</label>
