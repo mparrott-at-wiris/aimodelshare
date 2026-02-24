@@ -1427,7 +1427,7 @@ function ctoConfirmDecision(roundIdx) {
         if (selCard) { selCard.style.opacity = '1'; }
         var existingHTML = choicesContainer.innerHTML;
         choicesContainer.innerHTML = '<details class="cto-review-details">'
-            + '<summary class="cto-review-summary">\ud83d\udcd6 Revisar todas las opciones</summary>'
+            + '<summary class="cto-review-summary">\U0001f4d6 Revisar todas las opciones</summary>'
             + '<div style="margin-top:12px;">' + existingHTML + '</div>'
             + '</details>';
     }
