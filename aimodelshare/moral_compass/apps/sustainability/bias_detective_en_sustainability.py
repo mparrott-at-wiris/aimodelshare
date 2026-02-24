@@ -1148,7 +1148,7 @@ CLIENT_JS = """
 })();
 
 // === Module 0: Typewriter ===
-(function aceInitTypewriter(){
+function aceInitTypewriter(){
     var el = document.getElementById('ace-typewriter-text');
     if (!el) { setTimeout(aceInitTypewriter, 200); return; }
     if (el.dataset.init === '1') return;
@@ -1160,10 +1160,10 @@ CLIENT_JS = """
         el.textContent = full.slice(0, i);
         if (i >= full.length) clearInterval(iv);
     }, 45);
-})();
+} aceInitTypewriter();
 
 // === Module 1: Heading Typewriter ===
-(function aceInitM1Typewriter(){
+function aceInitM1Typewriter(){
     var el = document.getElementById('ace-m1-typewriter-text');
     if (!el) { setTimeout(aceInitM1Typewriter, 200); return; }
     if (el.dataset.init === '1') return;
@@ -1184,7 +1184,7 @@ CLIENT_JS = """
             if (content) { content.style.opacity = '1'; content.style.transform = 'translateY(0)'; }
         }
     }, 45);
-})();
+} aceInitM1Typewriter();
 
 // === Module 1: Prompt Calculator ===
 function aceUpdatePromptCalc(val) {
@@ -1230,16 +1230,16 @@ function aceToggleComparison() {
         btn.style.background = 'transparent';
     }
 }
-(function aceInitPrompt(){
+function aceInitPrompt(){
     var el = document.getElementById('ace-prompt-count');
     if (!el) { setTimeout(aceInitPrompt, 200); return; }
     if (el.dataset.init === '1') return;
     el.dataset.init = '1';
     aceUpdatePromptCalc(1);
-})();
+} aceInitPrompt();
 
 // === Module 2: Training ===
-(function aceInitTraining(){
+function aceInitTraining(){
     var barsEl = document.getElementById('ace-training-bars');
     if (!barsEl) { setTimeout(aceInitTraining, 200); return; }
     if (barsEl.dataset.init === '1') return;
@@ -1306,10 +1306,10 @@ function aceToggleComparison() {
             + '<span style="font-size:0.75rem; color:var(--ace-bar-text); font-weight:700;">' + b.v + '</span></div></div></div>';
     }
     barsEl.innerHTML = barHtml;
-})();
+} aceInitTraining();
 
 // === Module 3: Water Crisis ===
-(function aceInitWater(){
+function aceInitWater(){
     var barContainer = document.getElementById('ace-water-bars');
     var quizEl = document.getElementById('ace-water-quiz');
     if (!barContainer || !quizEl) { setTimeout(aceInitWater, 200); return; }
@@ -1366,10 +1366,10 @@ function aceToggleComparison() {
             }
         }
     };
-})();
+} aceInitWater();
 
 // === Module 4: Global Scale ===
-(function aceInitScale(){
+function aceInitScale(){
     var tabsEl = document.getElementById('ace-scale-tabs');
     var bdEl = document.getElementById('ace-energy-breakdown');
     if (!tabsEl || !bdEl) { setTimeout(aceInitScale, 200); return; }
@@ -1423,10 +1423,10 @@ function aceToggleComparison() {
             + '<span style="font-size:0.75rem; color:var(--ace-bar-text); font-weight:700;">' + x.p + '%</span></div></div></div>';
     }
     bdEl.innerHTML = bdHtml;
-})();
+} aceInitScale();
 
 // === Module 5: Action Plan ===
-(function aceInitActions(){
+function aceInitActions(){
     var container = document.getElementById('ace-actions');
     if (!container) { setTimeout(aceInitActions, 200); return; }
     if (container.dataset.init === '1') return;
@@ -1485,10 +1485,10 @@ function aceToggleComparison() {
         renderActions();
     };
     renderActions();
-})();
+} aceInitActions();
 
 // === Re-init after back-navigation (Gradio may re-render HTML, wiping dynamic content) ===
-function aceReinitAll(){
+function _aceDoReinit(){
     var tw = document.getElementById('ace-typewriter-text');
     if (tw && !tw.textContent.trim()) { delete tw.dataset.init; aceInitTypewriter(); }
     var m1tw = document.getElementById('ace-m1-typewriter-text');
@@ -1509,6 +1509,10 @@ function aceReinitAll(){
     if (tabs && tabs.children.length === 0) { delete tabs.dataset.init; aceInitScale(); }
     var acts = document.getElementById('ace-actions');
     if (acts && acts.children.length === 0) { delete acts.dataset.init; aceInitActions(); }
+}
+function aceReinitAll(){
+    _aceDoReinit();
+    setTimeout(_aceDoReinit, 800);
 }
 """
 
@@ -1795,16 +1799,26 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                 prev_col = module_ui_elements[i - 1][0]
                 prev_target_id = f"module-{i-1}"
 
-                def make_prev_handler(p_col, c_col, target_id):
+                def make_prev_dashboard_handler(prev_idx):
+                    def wrapper_prev(user, tok, team, tasks):
+                        data, _ = ensure_table_and_get_data(user, tok, team, tasks)
+                        return render_top_dashboard(data, prev_idx)
+                    return wrapper_prev
+
+                def make_prev_nav_generator(p_col, c_col):
                     def navigate_prev():
                         yield gr.update(visible=False), gr.update(visible=False)
                         yield gr.update(visible=True), gr.update(visible=False)
                     return navigate_prev
 
                 prev_btn.click(
-                    fn=make_prev_handler(prev_col, curr_col, prev_target_id),
-                    outputs=[prev_col, curr_col],
+                    fn=make_prev_dashboard_handler(i - 1),
+                    inputs=[username_state, token_state, team_state, task_list_state],
+                    outputs=[out_top],
                     js=nav_js(prev_target_id, "Loading..."),
+                ).then(
+                    fn=make_prev_nav_generator(prev_col, curr_col),
+                    outputs=[prev_col, curr_col],
                 )
 
             if i < len(MODULES) - 1:
