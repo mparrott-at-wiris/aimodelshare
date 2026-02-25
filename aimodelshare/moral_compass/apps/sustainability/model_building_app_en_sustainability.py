@@ -375,7 +375,7 @@ TEAM_NAMES = [
 ]
 
 FEATURE_SET_ALL_OPTIONS = [
-    ("Floor Area — how big the building is (sq ft)", "floor_area"),
+    ("Floor Area — how big the building is (m²)", "floor_area"),
     ("Year Built", "year_built"),
     ("Building Type (office, school, warehouse, etc.)", "building_class"),
     ("Building Use (hospital, lab, retail, etc.)", "facility_type"),
@@ -1018,7 +1018,7 @@ MODULES = [
         "html": """
 <div style="padding-top:24px;">
   <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#127970; Your Mission</h2>
-  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 20px; line-height:1.6;">You can't audit every building manually. Your AI will predict which buildings waste the most energy using a metric called <strong style="color:var(--a4-warning);">Site EUI</strong> (Energy Use Intensity &mdash; a score for how much energy a building uses per square foot).</p>
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 20px; line-height:1.6;">You can't audit every building manually. Your AI will predict which buildings waste the most energy using a metric called <strong style="color:var(--a4-warning);">Site EUI</strong> (Energy Use Intensity &mdash; a score for how much energy a building uses per square metre).</p>
   <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 8px 24px var(--a4-card-shadow);">
     <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// energy usage intensity formula</div>
     <div style="background:var(--a4-formula-bg); border-radius:10px; padding:14px 20px; text-align:center; font-family:'Space Mono',monospace; font-size:15px; color:var(--a4-formula-text); font-weight:700; letter-spacing:1px;">(Electricity + Gas) &divide; Floor Area = EUI</div>

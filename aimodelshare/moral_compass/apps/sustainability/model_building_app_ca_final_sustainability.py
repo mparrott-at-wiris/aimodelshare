@@ -796,7 +796,7 @@ def translate_team_name_for_display(english_name: str, lang: str = "ca") -> str:
 
 # --- Feature groups for scaffolding ---
 FEATURE_SET_ALL_OPTIONS = [
-    ("Superfície (peus quadrats)", "floor_area"),
+    ("Superfície (m²)", "floor_area"),
     ("Any de construcció", "year_built"),
     ("Classe d'edifici", "building_class"),
     ("Tipus d'instal·lació", "facility_type"),

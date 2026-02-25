@@ -751,7 +751,7 @@ CURRENT_TEAM_NAME = random.choice(TEAM_NAMES)
 
 # --- Feature groups for scaffolding ---
 FEATURE_SET_ALL_OPTIONS = [
-    ("Floor Area — how big the building is (sq ft)", "floor_area"),
+    ("Floor Area — how big the building is (m²)", "floor_area"),
     ("Year Built", "year_built"),
     ("Building Type (office, school, warehouse, etc.)", "building_class"),
     ("Building Use (hospital, lab, retail, etc.)", "facility_type"),

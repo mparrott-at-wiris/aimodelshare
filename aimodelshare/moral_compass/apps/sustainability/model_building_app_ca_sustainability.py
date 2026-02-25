@@ -407,7 +407,7 @@ def translate_team_name_for_display(english_name: str, lang: str = "ca") -> str:
 
 
 FEATURE_SET_ALL_OPTIONS = [
-    ("Superfície (peus quadrats)", "floor_area"),
+    ("Superfície (m²)", "floor_area"),
     ("Any de construcció", "year_built"),
     ("Classe d'edifici", "building_class"),
     ("Tipus d'instal·lació", "facility_type"),
@@ -1061,7 +1061,7 @@ MODULES = [
         "html": """
 <div style="padding-top:24px;">
   <h2 style="font-size:24px; font-weight:800; margin:0 0 6px; color:var(--a4-accent);">&#127970; La Teva Missió</h2>
-  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 20px; line-height:1.6;">No pots auditar cada edifici manualment. La teva IA predirà quins edificis malgasten més energia utilitzant una mètrica anomenada <strong style="color:var(--a4-warning);">Site EUI</strong> (Intensitat d'Ús Energètic &mdash; una puntuació de quanta energia utilitza un edifici per peu quadrat).</p>
+  <p style="color:var(--a4-text-dim); font-size:15px; margin:0 0 20px; line-height:1.6;">No pots auditar cada edifici manualment. La teva IA predirà quins edificis malgasten més energia utilitzant una mètrica anomenada <strong style="color:var(--a4-warning);">Site EUI</strong> (Intensitat d'Ús Energètic &mdash; una puntuació de quanta energia utilitza un edifici per metre quadrat).</p>
   <div style="background:var(--a4-card-bg); border:1px solid var(--a4-border-color); border-radius:16px; padding:20px; margin-bottom:16px; box-shadow:0 8px 24px var(--a4-card-shadow);">
     <div style="font-family:'Space Mono',monospace; font-size:12px; color:var(--a4-accent); margin-bottom:10px;">// fórmula d'intensitat d'ús energètic</div>
     <div style="background:var(--a4-formula-bg); border-radius:10px; padding:14px 20px; text-align:center; font-family:'Space Mono',monospace; font-size:15px; color:var(--a4-formula-text); font-weight:700; letter-spacing:1px;">(Electricitat + Gas) &divide; Superfície = EUI</div>

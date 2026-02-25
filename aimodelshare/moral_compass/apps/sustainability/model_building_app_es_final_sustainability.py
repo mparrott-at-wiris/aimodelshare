@@ -790,7 +790,7 @@ DATA_SIZE_DISPLAY_MAP = {
 
 # --- Feature groups for scaffolding ---
 FEATURE_SET_ALL_OPTIONS = [
-    ("Superficie (pies cuadrados)", "floor_area"),
+    ("Superficie (m²)", "floor_area"),
     ("Año de construcción", "year_built"),
     ("Clase de edificio", "building_class"),
     ("Tipo de instalación", "facility_type"),
