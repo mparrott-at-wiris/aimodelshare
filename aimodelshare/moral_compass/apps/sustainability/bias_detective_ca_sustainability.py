@@ -291,10 +291,12 @@ MODULES = [
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
                     <div class="ace-section-label">03 / Aigua: el cost ocult</div>
-                    <h2 class="ace-heading">La IA podria beure m&eacute;s aigua que <span style="color:var(--ace-accent);">tota l'aigua embotellada del m&oacute;n</span></h2>
+                    <h2 class="ace-heading">La IA podria consumir tanta aigua com <span style="color:var(--ace-accent);">tota l'aigua embotellada del m&oacute;n</span></h2>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.2s;">
-                    <p class="ace-paragraph">Un estudi de 2025 va trobar que la petjada h&iacute;drica global de la IA podria arribar als <strong style="color:var(--ace-text); font-weight:600;">312 a 764 mil milions de litres per any</strong> &mdash; comparable al consum mundial anual d'aigua embotellada. Mentrestant, nom&eacute;s el <strong style="color:var(--ace-accent); font-weight:700;">0,5% de l'aigua de la Terra</strong> &eacute;s aigua dol&ccedil;a accessible.</p>
+                    <p class="ace-paragraph">Un estudi de 2025 estima que la petjada h&iacute;drica global de la IA podria situar-se entre <strong style="color:var(--ace-text); font-weight:600;">312 i 764 mil milions de litres anuals</strong> &mdash; una quantitat comparable al consum mundial d'aigua embotellada en un any.</p>
+                    <p class="ace-paragraph">Al mateix temps, els centres de dades utilitzen cada cop m&eacute;s aigua dol&ccedil;a per refrigerar els seus sistemes, incrementant la pressi&oacute; sobre els recursos locals.</p>
+                    <p class="ace-paragraph">I tot aix&ograve; quan nom&eacute;s el <strong style="color:var(--ace-accent); font-weight:700;">0,5% de l'aigua del m&oacute;n</strong> &eacute;s dol&ccedil;a i accessible.</p>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.4s;">
                     <div class="ace-card">

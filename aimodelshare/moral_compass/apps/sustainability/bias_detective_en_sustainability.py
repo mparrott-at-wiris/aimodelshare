@@ -277,7 +277,9 @@ MODULES = [
                     <h2 class="ace-heading">AI could drink more water than <span style="color:var(--ace-accent);">all the world's bottled water</span></h2>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.2s;">
-                    <p class="ace-paragraph">A 2025 study found that AI's global water footprint could reach <strong style="color:var(--ace-text); font-weight:600;">312 to 764 billion liters per year</strong> &mdash; comparable to the entire world's annual bottled water consumption. Meanwhile, only <strong style="color:var(--ace-accent); font-weight:700;">0.5% of Earth's water</strong> is accessible freshwater.</p>
+                    <p class="ace-paragraph">A 2025 study estimates that AI's global water footprint could reach <strong style="color:var(--ace-text); font-weight:600;">312 to 764 billion liters per year</strong> &mdash; an amount comparable to the world's total annual bottled water consumption.</p>
+                    <p class="ace-paragraph">Much of this demand comes from data centers that rely on increasing amounts of freshwater to cool their systems, placing growing pressure on local water supplies.</p>
+                    <p class="ace-paragraph">All this when only <strong style="color:var(--ace-accent); font-weight:700;">0.5% of the world's water</strong> is accessible freshwater.</p>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.4s;">
                     <div class="ace-card">

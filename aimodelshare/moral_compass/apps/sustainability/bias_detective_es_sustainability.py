@@ -291,10 +291,12 @@ MODULES = [
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
                     <div class="ace-section-label">03 / Agua: el coste oculto</div>
-                    <h2 class="ace-heading">La IA podr&iacute;a beber m&aacute;s agua que <span style="color:var(--ace-accent);">toda el agua embotellada del mundo</span></h2>
+                    <h2 class="ace-heading">La IA podr&iacute;a consumir tanta agua como <span style="color:var(--ace-accent);">toda el agua embotellada del mundo</span></h2>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.2s;">
-                    <p class="ace-paragraph">Un estudio de 2025 descubri&oacute; que la huella h&iacute;drica global de la IA podr&iacute;a alcanzar de <strong style="color:var(--ace-text); font-weight:600;">312 a 764 mil millones de litros al a&ntilde;o</strong> &mdash; comparable al consumo mundial anual de agua embotellada. Mientras tanto, solo el <strong style="color:var(--ace-accent); font-weight:700;">0,5% del agua de la Tierra</strong> es agua dulce accesible.</p>
+                    <p class="ace-paragraph">Un estudio de 2025 estima que la huella h&iacute;drica global de la IA podr&iacute;a situarse entre <strong style="color:var(--ace-text); font-weight:600;">312 y 764 mil millones de litros anuales</strong> &mdash; una cantidad comparable al consumo mundial de agua embotellada en un a&ntilde;o.</p>
+                    <p class="ace-paragraph">Gran parte de esta demanda proviene de los centros de datos, que utilizan cada vez m&aacute;s agua dulce para refrigerar sus sistemas, aumentando la presi&oacute;n sobre los recursos h&iacute;dricos locales.</p>
+                    <p class="ace-paragraph">Y todo esto cuando solo el <strong style="color:var(--ace-accent); font-weight:700;">0,5% del agua del mundo</strong> es dulce y accesible.</p>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.4s;">
                     <div class="ace-card">
