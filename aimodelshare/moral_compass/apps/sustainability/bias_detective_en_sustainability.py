@@ -324,7 +324,7 @@ MODULES = [
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
                     <div class="ace-section-label">04 / Zoom Out</div>
-                    <h2 class="ace-heading">AI's appetite is the size of <span style="color:var(--ace-warning);">entire countries</span></h2>
+                    <h2 class="ace-heading">AI's energy appetite is the size of <span style="color:var(--ace-warning);">entire countries</span></h2>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.2s;">
                     <p class="ace-paragraph">Data centers already use about <strong style="color:var(--ace-text); font-weight:600;">1.5% of global electricity</strong> &mdash; projected to nearly triple by 2030. The U.S. alone holds 45.6% of the world's data centers.</p>
@@ -420,14 +420,14 @@ QUIZ_CONFIG = {
     },
     5: {
         "t": "t4",
-        "q": "AI data centers already use ~1.5% of global electricity, projected to nearly triple by 2030. Dublin banned new data centers in 2022 because they threatened 18% of Ireland's grid. **What does this tell us?**",
+        "q": "AI data centers already use about 1.5% of all the electricity in the world \u2014 and that's expected to nearly triple by 2030. In 2022, Dublin (Ireland's capital) banned new data centers because they were using so much electricity that homes and businesses might not have enough. **What does this tell us?**",
         "o": [
             "A) Data centers should be banned everywhere \u2014 they use way too much electricity and it\u2019s not worth it.",
             "B) AI now uses so much electricity that it competes with entire countries for power, and governments have to make tough choices about it.",
-            "C) Dublin overreacted \u2014 1.5% isn\u2019t much, and clean energy like solar and wind will grow fast enough on its own.",
+            "C) Dublin overreacted \u2014 1.5% isn\u2019t that much, and solar and wind energy will catch up on their own.",
         ],
         "a": "B) AI now uses so much electricity that it competes with entire countries for power, and governments have to make tough choices about it.",
-        "success": "Scale mapped. AI now uses as much electricity as entire nations \u2014 and it's growing faster than renewable energy can keep up.",
+        "success": "AI now uses as much electricity as entire countries \u2014 and it's growing faster than renewable energy can keep up.",
     },
 }
 

@@ -341,7 +341,7 @@ MODULES = [
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
                     <div class="ace-section-label">04 / Visi&oacute; global</div>
-                    <h2 class="ace-heading">L'apetit de la IA &eacute;s de la mida de <span style="color:var(--ace-warning);">pa&iuml;sos sencers</span></h2>
+                    <h2 class="ace-heading">El consum energ&egrave;tic de la IA &eacute;s comparable a la de <span style="color:var(--ace-warning);">pa&iuml;sos sencers</span></h2>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.2s;">
                     <p class="ace-paragraph">Els centres de dades ja consumeixen aproximadament l'<strong style="color:var(--ace-text); font-weight:600;">1,5% de l'electricitat mundial</strong> &mdash; i es preveu que gaireb&eacute; es tripliqui per al 2030. Nom&eacute;s els EUA allotgen el 45,6% dels centres de dades del m&oacute;n.</p>
@@ -437,14 +437,14 @@ QUIZ_CONFIG = {
     },
     5: {
         "t": "t4",
-        "q": "Els centres de dades d'IA ja consumeixen ~1,5% de l'electricitat mundial, i es preveu que gaireb\u00e9 es tripliqui per al 2030. Dubl\u00edn va prohibir nous centres de dades el 2022 perqu\u00e8 amena\u00e7aven el 18% de la xarxa el\u00e8ctrica d'Irlanda. **Qu\u00e8 ens diu aix\u00f2?**",
+        "q": "Els centres de dades d'IA ja consumeixen al voltant de l'1,5% de tota l'electricitat del m\u00f3n \u2014 i s'espera que gaireb\u00e9 es tripliqui per al 2030. El 2022, Dubl\u00edn (la capital d'Irlanda) va prohibir nous centres de dades perqu\u00e8 estaven fent servir tanta electricitat que les llars i els negocis podrien quedar-se sense prou. **Qu\u00e8 ens diu aix\u00f2?**",
         "o": [
             "A) Els centres de dades s'haurien de prohibir a tot arreu \u2014 fan servir massa electricitat i no val la pena.",
             "B) La IA ja fa servir tanta electricitat que competeix amb pa\u00efsos sencers per l'energia, i els governs han de prendre decisions dif\u00edcils al respecte.",
-            "C) Dubl\u00edn va reaccionar de manera exagerada \u2014 l'1,5% no \u00e9s gaire, i les energies netes com la solar i l'e\u00f2lica creixeran prou per si soles.",
+            "C) Dubl\u00edn va reaccionar de manera exagerada \u2014 l'1,5% no \u00e9s tant, i l'energia solar i e\u00f2lica creixeran prou per si soles.",
         ],
         "a": "B) La IA ja fa servir tanta electricitat que competeix amb pa\u00efsos sencers per l'energia, i els governs han de prendre decisions dif\u00edcils al respecte.",
-        "success": "Escala mapeada. La IA ja consumeix tanta electricitat com nacions senceres \u2014 i creix m\u00e9s r\u00e0pidament del que les energies renovables poden seguir.",
+        "success": "La IA ja consumeix tanta electricitat com pa\u00efsos sencers \u2014 i creix m\u00e9s r\u00e0pidament del que les energies renovables poden seguir.",
     },
 }
 

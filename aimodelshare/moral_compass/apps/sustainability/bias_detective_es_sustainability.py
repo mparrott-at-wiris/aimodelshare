@@ -341,7 +341,7 @@ MODULES = [
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
                     <div class="ace-section-label">04 / Visi&oacute;n global</div>
-                    <h2 class="ace-heading">El apetito de la IA es del tama&ntilde;o de <span style="color:var(--ace-warning);">pa&iacute;ses enteros</span></h2>
+                    <h2 class="ace-heading">El consumo energ&eacute;tico de la IA es comparable a la de <span style="color:var(--ace-warning);">pa&iacute;ses enteros</span></h2>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.2s;">
                     <p class="ace-paragraph">Los centros de datos ya consumen aproximadamente el <strong style="color:var(--ace-text); font-weight:600;">1,5% de la electricidad mundial</strong> &mdash; y se prev&eacute; que casi se triplique para 2030. Solo EE. UU. alberga el 45,6% de los centros de datos del mundo.</p>
@@ -437,14 +437,14 @@ QUIZ_CONFIG = {
     },
     5: {
         "t": "t4",
-        "q": "Los centros de datos de IA ya consumen ~1,5% de la electricidad mundial, y se prev\u00e9 que casi se triplique para 2030. Dubl\u00edn prohibi\u00f3 nuevos centros de datos en 2022 porque amenazaban el 18% de la red el\u00e9ctrica de Irlanda. **\u00bfQu\u00e9 nos dice esto?**",
+        "q": "Los centros de datos de IA ya consumen alrededor del 1,5% de toda la electricidad del mundo \u2014 y se espera que casi se triplique para 2030. En 2022, Dubl\u00edn (la capital de Irlanda) prohibi\u00f3 nuevos centros de datos porque estaban usando tanta electricidad que los hogares y negocios podr\u00edan quedarse sin suficiente. **\u00bfQu\u00e9 nos dice esto?**",
         "o": [
             "A) Los centros de datos deber\u00edan prohibirse en todas partes \u2014 usan demasiada electricidad y no vale la pena.",
             "B) La IA ya usa tanta electricidad que compite con pa\u00edses enteros por la energ\u00eda, y los gobiernos tienen que tomar decisiones dif\u00edciles al respecto.",
-            "C) Dubl\u00edn reaccion\u00f3 de forma exagerada \u2014 el 1,5% no es mucho, y las energ\u00edas limpias como la solar y la e\u00f3lica crecer\u00e1n lo suficiente por s\u00ed solas.",
+            "C) Dubl\u00edn reaccion\u00f3 de forma exagerada \u2014 el 1,5% no es tanto, y la energ\u00eda solar y e\u00f3lica crecer\u00e1n lo suficiente por s\u00ed solas.",
         ],
         "a": "B) La IA ya usa tanta electricidad que compite con pa\u00edses enteros por la energ\u00eda, y los gobiernos tienen que tomar decisiones dif\u00edciles al respecto.",
-        "success": "Escala mapeada. La IA ya consume tanta electricidad como naciones enteras \u2014 y crece m\u00e1s r\u00e1pido de lo que las energ\u00edas renovables pueden seguir.",
+        "success": "La IA ya consume tanta electricidad como pa\u00edses enteros \u2014 y crece m\u00e1s r\u00e1pido de lo que las energ\u00edas renovables pueden seguir.",
     },
 }
 
