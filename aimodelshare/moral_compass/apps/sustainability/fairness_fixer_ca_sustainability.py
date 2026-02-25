@@ -222,8 +222,8 @@ MODULES = [
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.6s;">
                         <p style="font-size:1.125rem; color:var(--cto-text-dim); text-align:center; max-width:480px; margin:28px auto 0; line-height:1.7;">
-                            L&#39;alcaldessa acaba de triar-TE com a <strong style="color:var(--cto-text); font-weight:600;">Assessor/a d&#39;IA Verda</strong> de la ciutat.
-                            Una empresa anomenada NovaMind vol construir un centre de dades gegant aqu&iacute;. Mira els n&uacute;meros de contaminaci&oacute; de sota &mdash; <strong style="color:var(--cto-error); font-weight:700;">aix&ograve; &eacute;s el que LA TEVA ciutat haur&agrave; d&#39;enfrontar</strong> si no actues.
+                            L&#39;alcaldia t&#39;ha nomenat <strong style="color:var(--cto-text); font-weight:600;">Assessor/a d&#39;IA Verda</strong>.
+                            NovaMind vol instal&middot;lar un centre de dades gegant a la ciutat. Mira les dades de contaminaci&oacute; de sota: <strong style="color:var(--cto-error); font-weight:700;">aix&ograve; &eacute;s el que la teva ciutat haur&agrave; d&#39;afrontar</strong> si no actues.
                         </p>
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.9s;">
@@ -308,11 +308,11 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 3,
-        "title": "Ronda 3: IA de la mida adequada",
+        "title": "Ronda 3: IA amb la mida justa",
         "html": _round_html(
             round_idx=3,
             emoji="\U0001f9e0",
-            title="IA de la mida adequada",
+            title="IA amb la mida justa",
             brief="NovaMind fa servir el seu model d&#39;IA m\u00e9s gran i potent per a CADA pregunta &mdash; fins i tot les f\u00e0cils com &#39;Quin temps fa?&#39; Pensa en els models d&#39;IA com cervells de mides diferents: alguns s\u00f3n enormes i potents, altres s\u00f3n petits i r\u00e0pids. 8 de cada 10 preguntes no necessiten el m\u00e9s gran.",
             question="Com hauria NovaMind de gestionar les preguntes f\u00e0cils vs. les dif\u00edcils?",
             choices=[
@@ -354,7 +354,7 @@ MODULES = [
             brief="La majoria de les empreses d&#39;IA mantenen les seves xifres de contaminaci\u00f3 en secret. Estan arribant noves lleis que les obligaran a compartir-les. Hauria NovaMind de donar exemple o amagar-se com tots els altres?",
             question="Quant hauria NovaMind de compartir amb el p\u00fablic?",
             choices=[
-                {"icon": "\U0001f4e1", "label": "Marcador p\u00fablic en viu", "desc": "Mostrar a tothom exactament quanta energia i aigua fa servir NovaMind, actualitzat en viu. Honestedat total."},
+                {"icon": "\U0001f4e1", "label": "Marcador p\u00fablic en temps real", "desc": "Mostrar a tothom exactament quanta energia i aigua fa servir NovaMind, actualitzat en temps real. Honestedat total."},
                 {"icon": "\U0001f4c4", "label": "Informe anual", "desc": "Publicar un informe un cop l&#39;any amb els n\u00fameros grans. \u00c9s el que fan la majoria de les empreses &mdash; el m\u00ednim."},
                 {"icon": "\U0001f512", "label": "Nom\u00e9s compartir el que la llei obligui", "desc": "Amagar tot el possible. Dir-ne un &#39;secret empresarial.&#39;"},
             ],
@@ -756,7 +756,7 @@ def render_leaderboard_card(data, username, team_name):
             )
     return f"""
     <div class="scenario-box leaderboard-card">
-        <h3 class="slide-title" style="margin-bottom:10px;">\U0001f4ca Classificaci\u00f3 en viu</h3>
+        <h3 class="slide-title" style="margin-bottom:10px;">\U0001f4ca Classificaci\u00f3 en temps real</h3>
         <div class="lb-tabs">
             <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
             <label for="lb-tab-team" class="lb-tab-label">\U0001f3c6 Equip</label>
@@ -1241,7 +1241,7 @@ window.CTO_ROUNDS = [
           fb:"Plantar arbres est\\u00e0 b\\u00e9, per\\u00f2 NovaMind SEGUEIX cremant combustibles f\\u00f2ssils. Els grups ecologistes ho anomenen fals. La contaminaci\\u00f3 no ha canviat realment gens.", tier:"poor" },
       ],
     },
-    { id:"models", title:"IA de la mida adequada", emoji:"\\ud83e\\udde0",
+    { id:"models", title:"IA amb la mida justa", emoji:"\\ud83e\\udde0",
       choices:[
         { id:"a", label:"Ajustar la mida del model a la dificultat", icon:"\\ud83e\\udea9",
           fx:{energy:-40,water:-30,co2:-38,cost:-35,greenScore:22,reputation:15},
@@ -1269,9 +1269,9 @@ window.CTO_ROUNDS = [
     },
     { id:"transparency", title:"Control d\\u2019honestedat", emoji:"\\ud83d\\udcca",
       choices:[
-        { id:"a", label:"Marcador p\\u00fablic en viu", icon:"\\ud83d\\udce1",
+        { id:"a", label:"Marcador p\\u00fablic en temps real", icon:"\\ud83d\\udce1",
           fx:{energy:-5,water:-3,co2:-5,cost:2,greenScore:18,reputation:25},
-          fb:"NovaMind es converteix en la PRIMERA empresa d\\u2019IA en mostrar els seus n\\u00fameros en viu! Cient\\u00edfics, periodistes i altres ciutats elogien el teu lideratge. Acabes d\\u2019establir un nou est\\u00e0ndard per a tota la ind\\u00fastria!", tier:"best" },
+          fb:"NovaMind es converteix en la PRIMERA empresa d\\u2019IA en mostrar els seus n\\u00fameros en temps real! Cient\\u00edfics, periodistes i altres ciutats elogien el teu lideratge. Acabes d\\u2019establir un nou est\\u00e0ndard per a tota la ind\\u00fastria!", tier:"best" },
         { id:"b", label:"Informe anual", icon:"\\ud83d\\udcc4",
           fx:{energy:-2,water:-1,co2:-2,cost:0,greenScore:8,reputation:10},
           fb:"Un informe anual \\u00e9s el que ja fan Google i Microsoft. Est\\u00e0 b\\u00e9, per\\u00f2 un cop l\\u2019any no \\u00e9s suficient per mantenir les empreses realment honestes.", tier:"good" },

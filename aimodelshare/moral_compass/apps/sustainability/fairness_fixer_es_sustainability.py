@@ -222,8 +222,8 @@ MODULES = [
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.6s;">
                         <p style="font-size:1.125rem; color:var(--cto-text-dim); text-align:center; max-width:480px; margin:28px auto 0; line-height:1.7;">
-                            La alcaldesa acaba de elegirTE como <strong style="color:var(--cto-text); font-weight:600;">Asesor/a de IA Verde</strong> de la ciudad.
-                            Una empresa llamada NovaMind quiere construir un centro de datos gigante aqu&iacute;. Mira los n&uacute;meros de contaminaci&oacute;n de abajo &mdash; <strong style="color:var(--cto-error); font-weight:700;">eso es lo que TU ciudad enfrentar&aacute;</strong> si no act&uacute;as.
+                            La alcald&iacute;a te ha nombrado <strong style="color:var(--cto-text); font-weight:600;">Asesor/a de IA Verde</strong>.
+                            NovaMind quiere instalar un centro de datos gigante en la ciudad. Mira los datos de contaminaci&oacute;n a continuaci&oacute;n: <strong style="color:var(--cto-error); font-weight:700;">esto es lo que tu ciudad tendr&aacute; que afrontar</strong> si no act&uacute;as.
                         </p>
                     </div>
                     <div class="cto-reveal" style="animation-delay:0.9s;">
@@ -308,11 +308,11 @@ MODULES = [
     # ─────────────────────────────────────────────
     {
         "id": 3,
-        "title": "Ronda 3: IA del tama\u00f1o adecuado",
+        "title": "Ronda 3: IA en su justa medida",
         "html": _round_html(
             round_idx=3,
             emoji="\U0001f9e0",
-            title="IA del tama\u00f1o adecuado",
+            title="IA en su justa medida",
             brief="NovaMind usa su modelo de IA m\u00e1s grande y potente para CADA pregunta &mdash; incluso las f\u00e1ciles como &#39;\u00bfQu\u00e9 tiempo hace?&#39; Piensa en los modelos de IA como cerebros de diferentes tama\u00f1os: algunos son enormes y potentes, otros son peque\u00f1os y r\u00e1pidos. 8 de cada 10 preguntas no necesitan el m\u00e1s grande.",
             question="\u00bfC\u00f3mo deber\u00eda NovaMind manejar las preguntas f\u00e1ciles vs. las dif\u00edciles?",
             choices=[
@@ -354,7 +354,7 @@ MODULES = [
             brief="La mayor\u00eda de las empresas de IA mantienen sus cifras de contaminaci\u00f3n en secreto. Est\u00e1n llegando nuevas leyes que les obligar\u00e1n a compartirlas. \u00bfDeber\u00eda NovaMind dar ejemplo o esconderse como todos los dem\u00e1s?",
             question="\u00bfCu\u00e1nto deber\u00eda NovaMind compartir con el p\u00fablico?",
             choices=[
-                {"icon": "\U0001f4e1", "label": "Marcador p\u00fablico en vivo", "desc": "Mostrar a todos exactamente cu\u00e1nta energ\u00eda y agua usa NovaMind, actualizado en vivo. Honestidad total."},
+                {"icon": "\U0001f4e1", "label": "Marcador p\u00fablico en tiempo real", "desc": "Mostrar a todos exactamente cu\u00e1nta energ\u00eda y agua usa NovaMind, actualizado en tiempo real. Honestidad total."},
                 {"icon": "\U0001f4c4", "label": "Informe anual", "desc": "Publicar un informe una vez al a\u00f1o con los n\u00fameros grandes. Es lo que hacen la mayor\u00eda de las empresas &mdash; lo m\u00ednimo."},
                 {"icon": "\U0001f512", "label": "Solo compartir lo que la ley obligue", "desc": "Esconder todo lo posible. Llamarlo un &#39;secreto empresarial.&#39;"},
             ],
@@ -756,7 +756,7 @@ def render_leaderboard_card(data, username, team_name):
             )
     return f"""
     <div class="scenario-box leaderboard-card">
-        <h3 class="slide-title" style="margin-bottom:10px;">\U0001f4ca Clasificaci\u00f3n en vivo</h3>
+        <h3 class="slide-title" style="margin-bottom:10px;">\U0001f4ca Clasificaci\u00f3n en tiempo real</h3>
         <div class="lb-tabs">
             <input type="radio" id="lb-tab-team" name="lb-tabs" checked>
             <label for="lb-tab-team" class="lb-tab-label">\U0001f3c6 Equipo</label>
@@ -1269,9 +1269,9 @@ window.CTO_ROUNDS = [
     },
     { id:"transparency", title:"Control de honestidad", emoji:"\\ud83d\\udcca",
       choices:[
-        { id:"a", label:"Marcador p\\u00fablico en vivo", icon:"\\ud83d\\udce1",
+        { id:"a", label:"Marcador p\\u00fablico en tiempo real", icon:"\\ud83d\\udce1",
           fx:{energy:-5,water:-3,co2:-5,cost:2,greenScore:18,reputation:25},
-          fb:"\\u00a1NovaMind se convierte en la PRIMERA empresa de IA en mostrar sus n\\u00fameros en vivo! Cient\\u00edficos, periodistas y otras ciudades aplauden tu liderazgo. \\u00a1Acabas de establecer un nuevo est\\u00e1ndar para toda la industria!", tier:"best" },
+          fb:"\\u00a1NovaMind se convierte en la PRIMERA empresa de IA en mostrar sus n\\u00fameros en tiempo real! Cient\\u00edficos, periodistas y otras ciudades aplauden tu liderazgo. \\u00a1Acabas de establecer un nuevo est\\u00e1ndar para toda la industria!", tier:"best" },
         { id:"b", label:"Informe anual", icon:"\\ud83d\\udcc4",
           fx:{energy:-2,water:-1,co2:-2,cost:0,greenScore:8,reputation:10},
           fb:"Un informe anual es lo que Google y Microsoft ya hacen. Est\\u00e1 bien, pero una vez al a\\u00f1o no es suficiente para mantener a las empresas realmente honestas.", tier:"good" },
