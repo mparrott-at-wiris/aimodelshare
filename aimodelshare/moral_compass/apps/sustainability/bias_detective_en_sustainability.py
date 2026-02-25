@@ -234,6 +234,7 @@ MODULES = [
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.2s;">
                     <p class="ace-paragraph">Training a large AI model means feeding it the entire internet &mdash; books, websites, code &mdash; over weeks on thousands of GPUs running 24/7. Training GPT-3 alone used enough electricity to <strong style="color:var(--ace-text); font-weight:600;">power 120 U.S. homes for a year</strong>.</p>
+                    <p class="ace-paragraph">But training only happens once. After that, 200 million people use it every single day &mdash; and all those small questions add up to <strong style="color:var(--ace-text); font-weight:600;">far more energy</strong> than the training ever cost.</p>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.4s;">
                     <div style="font-size:1rem; color:var(--ace-text-dim); margin-bottom:12px; font-weight:600;">Tap a model to see its training footprint</div>

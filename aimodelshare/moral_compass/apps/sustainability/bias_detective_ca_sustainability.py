@@ -197,7 +197,7 @@ MODULES = [
                     <h2 class="ace-heading" style="min-height:2.4em;"><span id="ace-m1-typewriter-text"></span><span style="display:inline-block; width:2px; height:1.1em; background:var(--ace-accent); margin-left:2px; animation:aceBlink 0.7s step-end infinite; vertical-align:text-bottom;"></span></h2>
                 </div>
                 <div id="ace-m1-reveal-content" style="opacity:0; transform:translateY(20px); transition:opacity 0.6s ease, transform 0.6s ease;">
-                    <p class="ace-paragraph">Investigadors de la UC Riverside van descobrir que una consulta d'IA (una pregunta o instrucci&oacute; que escrius a un xatbot com ChatGPT) de ~100 paraules consumeix aproximadament <strong style="color:var(--ace-text); font-weight:600;">mig litre d'aigua</strong> &mdash; m&eacute;s o menys una ampolla est&agrave;ndard. Aquesta aigua refrigera els enormes xips dels servidors. L'energia? Equivalent a mirar la televisi&oacute; durant <strong style="color:var(--ace-text); font-weight:600;">9 segons</strong>.</p>
+                    <p class="ace-paragraph">Investigadors de la UC Riverside van descobrir que una consulta d'IA (una pregunta o instrucci&oacute; que escrius a un xatbot com ChatGPT) de ~100 paraules consumeix aproximadament <strong style="color:var(--ace-text); font-weight:600;">mig litre d'aigua</strong> &mdash; m&eacute;s o menys una ampolla est&agrave;ndard. Aquesta aigua refrigera els enormes xips dels servidors. I pel que fa a l'energia, el consum &eacute;s similar al de mirar la televisi&oacute; durant uns <strong style="color:var(--ace-text); font-weight:600;">9 segons</strong>.</p>
                     <p class="ace-paragraph" style="font-size:1rem;">No sembla gaire, oi? Per&ograve; pensa en quantes consultes envies al dia...</p>
                     <div class="ace-card">
                         <label style="display:block; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">Quantes consultes d'IA envies al dia?</label>
@@ -247,10 +247,11 @@ MODULES = [
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
                     <div class="ace-section-label">02 / Entrenar la b&egrave;stia</div>
-                    <h2 class="ace-heading">Abans que escriguessis la teva primera consulta, <span style="color:var(--ace-error);">es van cremar milions de MWh</span></h2>
+                    <h2 class="ace-heading">Abans d'escriure la teva primera consulta, <span style="color:var(--ace-error);">ja s'havien consumit milions de MWh</span></h2>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.2s;">
-                    <p class="ace-paragraph">Entrenar un gran model d'IA significa alimentar-lo amb tot internet &mdash; llibres, llocs web, codi &mdash; durant setmanes en milers de GPUs funcionant les 24 hores. Entrenar nom&eacute;s GPT-3 va consumir prou electricitat per <strong style="color:var(--ace-text); font-weight:600;">abastir 120 llars dels EUA durant un any</strong>.</p>
+                    <p class="ace-paragraph">Entrenar un gran model d'IA implica alimentar-lo amb enormes quantitats de dades &mdash; llibres, p&agrave;gines web, codi &mdash; durant setmanes, utilitzant milers de GPU funcionant les 24 hores del dia. Nom&eacute;s l'entrenament de GPT-3 va consumir prou electricitat per <strong style="color:var(--ace-text); font-weight:600;">abastir 120 llars dels Estats Units durant un any</strong>.</p>
+                    <p class="ace-paragraph">Per&ograve; l'entrenament nom&eacute;s passa un cop. Despr&eacute;s, 200 milions de persones el fan servir cada dia &mdash; i totes aquelles petites consultes sumen <strong style="color:var(--ace-text); font-weight:600;">molta m&eacute;s energia</strong> de la que va costar l'entrenament.</p>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.4s;">
                     <div style="font-size:1rem; color:var(--ace-text-dim); margin-bottom:12px; font-weight:600;">Prem un model per veure la seva petjada d'entrenament</div>
@@ -274,7 +275,7 @@ MODULES = [
                     <div id="ace-model-detail" style="display:none; margin-top:20px;"></div>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.6s;">
-                    <div style="margin-top:32px; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">L'energia d'entrenament ha explotat:</div>
+                    <div style="margin-top:32px; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">El consum energ&egrave;tic de l'entrenament s'ha disparat:</div>
                     <div id="ace-training-bars"></div>
                 </div>
             </div>

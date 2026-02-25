@@ -197,7 +197,7 @@ MODULES = [
                     <h2 class="ace-heading" style="min-height:2.4em;"><span id="ace-m1-typewriter-text"></span><span style="display:inline-block; width:2px; height:1.1em; background:var(--ace-accent); margin-left:2px; animation:aceBlink 0.7s step-end infinite; vertical-align:text-bottom;"></span></h2>
                 </div>
                 <div id="ace-m1-reveal-content" style="opacity:0; transform:translateY(20px); transition:opacity 0.6s ease, transform 0.6s ease;">
-                    <p class="ace-paragraph">Investigadores de UC Riverside descubrieron que una consulta de IA (una pregunta o instrucci&oacute;n que escribes a un chatbot como ChatGPT) de ~100 palabras consume aproximadamente <strong style="color:var(--ace-text); font-weight:600;">medio litro de agua</strong> &mdash; m&aacute;s o menos una botella est&aacute;ndar. Esa agua refrigera los enormes chips de los servidores. &iquest;La energ&iacute;a? Equivalente a ver la televisi&oacute;n durante <strong style="color:var(--ace-text); font-weight:600;">9 segundos</strong>.</p>
+                    <p class="ace-paragraph">Investigadores de UC Riverside descubrieron que una consulta de IA (una pregunta o instrucci&oacute;n que escribes a un chatbot como ChatGPT) de ~100 palabras consume aproximadamente <strong style="color:var(--ace-text); font-weight:600;">medio litro de agua</strong> &mdash; m&aacute;s o menos una botella est&aacute;ndar. Esa agua refrigera los enormes chips de los servidores. Y en cuanto a la energ&iacute;a, el consumo es similar al de ver la televisi&oacute;n durante unos <strong style="color:var(--ace-text); font-weight:600;">9 segundos</strong>.</p>
                     <p class="ace-paragraph" style="font-size:1rem;">&iquest;No parece mucho, verdad? Pero piensa en cu&aacute;ntas consultas env&iacute;as al d&iacute;a...</p>
                     <div class="ace-card">
                         <label style="display:block; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">&iquest;Cu&aacute;ntas consultas de IA env&iacute;as al d&iacute;a?</label>
@@ -247,10 +247,11 @@ MODULES = [
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
                     <div class="ace-section-label">02 / Entrenar a la bestia</div>
-                    <h2 class="ace-heading">Antes de que escribieras tu primera consulta, <span style="color:var(--ace-error);">se quemaron millones de MWh</span></h2>
+                    <h2 class="ace-heading">Antes de escribir tu primera consulta, <span style="color:var(--ace-error);">ya se hab&iacute;an consumido millones de MWh</span></h2>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.2s;">
-                    <p class="ace-paragraph">Entrenar un gran modelo de IA significa alimentarlo con todo internet &mdash; libros, sitios web, c&oacute;digo &mdash; durante semanas en miles de GPUs funcionando las 24 horas. Entrenar solo GPT-3 consumi&oacute; suficiente electricidad para <strong style="color:var(--ace-text); font-weight:600;">abastecer 120 hogares de EE. UU. durante un a&ntilde;o</strong>.</p>
+                    <p class="ace-paragraph">Entrenar un gran modelo de IA implica alimentarlo con enormes cantidades de datos &mdash; libros, p&aacute;ginas web, c&oacute;digo &mdash; durante semanas, utilizando miles de GPU funcionando las 24 horas del d&iacute;a. Solo el entrenamiento de GPT-3 consumi&oacute; suficiente electricidad para <strong style="color:var(--ace-text); font-weight:600;">abastecer 120 hogares de Estados Unidos durante un a&ntilde;o</strong>.</p>
+                    <p class="ace-paragraph">Pero el entrenamiento solo ocurre una vez. Despu&eacute;s, 200 millones de personas lo usan cada d&iacute;a &mdash; y todas esas peque&ntilde;as consultas suman <strong style="color:var(--ace-text); font-weight:600;">mucha m&aacute;s energ&iacute;a</strong> de la que cost&oacute; el entrenamiento.</p>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.4s;">
                     <div style="font-size:1rem; color:var(--ace-text-dim); margin-bottom:12px; font-weight:600;">Pulsa un modelo para ver su huella de entrenamiento</div>
@@ -274,7 +275,7 @@ MODULES = [
                     <div id="ace-model-detail" style="display:none; margin-top:20px;"></div>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.6s;">
-                    <div style="margin-top:32px; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">La energ&iacute;a de entrenamiento ha explotado:</div>
+                    <div style="margin-top:32px; font-size:1rem; color:var(--ace-text-dim); margin-bottom:16px; font-weight:600;">El consumo energ&eacute;tico del entrenamiento se ha disparado:</div>
                     <div id="ace-training-bars"></div>
                 </div>
             </div>
