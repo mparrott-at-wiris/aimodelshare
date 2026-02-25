@@ -369,7 +369,7 @@ MODULES = [
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
                     <div class="ace-section-label">05 / Tu turno</div>
-                    <h2 class="ace-heading">Ahora lo sabes. <span style="color:var(--ace-success);">&iquest;Qu&eacute; puedes hacer realmente?</span></h2>
+                    <h2 class="ace-heading">Ahora que conoces el impacto, <span style="color:var(--ace-success);">&iquest;qu&eacute; puedes hacer realmente?</span></h2>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.2s;">
                     <p class="ace-paragraph">Nadie dice que dejes de usar la IA &mdash; es incre&iacute;blemente potente. Pero ser <strong style="color:var(--ace-text); font-weight:600;">consciente</strong> de c&oacute;mo la usas marca una diferencia real cuando se multiplica por miles de millones de usuarios.</p>

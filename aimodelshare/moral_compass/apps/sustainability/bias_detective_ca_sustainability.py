@@ -369,7 +369,7 @@ MODULES = [
             <div class="scenario-box" style="border:none; background:transparent; box-shadow:none; padding:0;">
                 <div class="ace-reveal" style="animation-delay:0s;">
                     <div class="ace-section-label">05 / El teu torn</div>
-                    <h2 class="ace-heading">Ara ho saps. <span style="color:var(--ace-success);">Qu&egrave; pots fer realment?</span></h2>
+                    <h2 class="ace-heading">Ara que coneixes l'impacte, <span style="color:var(--ace-success);">qu&egrave; pots fer realment?</span></h2>
                 </div>
                 <div class="ace-reveal" style="animation-delay:0.2s;">
                     <p class="ace-paragraph">Ning&uacute; diu que deixis d'usar la IA &mdash; &eacute;s incre&iuml;blement potent. Per&ograve; ser <strong style="color:var(--ace-text); font-weight:600;">conscient</strong> de com la fas servir marca una difer&egrave;ncia real quan es multiplica per milers de milions d'usuaris.</p>
@@ -1455,7 +1455,7 @@ function aceInitActions(){
         {id:'search', l:'Busca-ho a Google primer', d:"Fes servir un cercador normal quan no necessitis IA", p:30, i:'\\ud83d\\udd0d'},
         {id:'specific', l:'Sigues espec\\u00edfic', d:'Consultes clares = menys seguiments = menys energia', p:15, i:'\\ud83c\\udfaf'},
         {id:'local', l:'Fes servir models m\\u00e9s petits', d:"Els models d'IA m\\u00e9s petits consumeixen molta menys energia per a tasques simples", p:25, i:'\\ud83d\\udcf1'},
-        {id:'aware', l:'Mantingues-te informat', d:'Exigeix transpar\\u00e8ncia a les empreses tecnol\\u00f2giques', p:20, i:'\\ud83d\\udce2'},
+        {id:'aware', l:'Mant\\u00e9n-te informat', d:'Exigeix transpar\\u00e8ncia a les empreses tecnol\\u00f2giques', p:20, i:'\\ud83d\\udce2'},
         {id:'share', l:"Explica-ho a un amic", d:"La majoria de la gent no t\\u00e9 ni idea que la IA consumeix tant", p:10, i:'\\ud83d\\udcac'}
     ];
     var pledged = {};
