@@ -174,6 +174,13 @@ jobs:
           echo "🚀 Starting API Integration Tests..."
           python tests/test_api_integration.py "$API_BASE_URL"
 
+      - name: Run Generic Endpoint Tests
+        working-directory: .
+        run: |
+          API_BASE_URL=$(cd infra && terraform output -raw api_base_url)
+          echo "API Base URL: $API_BASE_URL"
+          python tests/test_api_generic_endpoints.py "$API_BASE_URL"
+
       - name: Run Pagination Tests
         working-directory: .
         run: |

@@ -107,6 +107,9 @@ jobs:
       - name: Run API integration tests
         run: python tests/test_api_integration.py "$API_BASE_URL"
 
+      - name: Run generic endpoint tests
+        run: python tests/test_api_generic_endpoints.py "$API_BASE_URL"
+
       - name: Run pagination tests
         if: inputs.run_pagination_tests == 'true'
         run: python tests/test_api_pagination.py "$API_BASE_URL"
