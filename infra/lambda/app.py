@@ -1607,6 +1607,310 @@ def delete_user_tasks(event):
         return create_response(500, {'error': f'Internal server error: {str(e)}'})
 
 
+# ============================================================================
+# Generic Data Endpoints (multi-course scalable — see multi-course-scalability.md)
+# ============================================================================
+
+# Field name validation: alphanumeric + underscores, 1-64 chars
+_FIELD_NAME_RE = re.compile(r'^[a-zA-Z][a-zA-Z0-9_]{0,63}$')
+
+# Profanity blocklist (starter list — upgrade to a maintained library for production)
+_PROFANITY_BLOCKLIST = set()  # TODO: populate before production deployment
+
+
+def _scan_table_users(table_id):
+    """Query all user items in a logical table (excludes _metadata)."""
+    items = []
+    query_kwargs = {
+        'KeyConditionExpression': Key('tableId').eq(table_id),
+        'ConsistentRead': READ_CONSISTENT
+    }
+    while True:
+        resp = retry_dynamo(lambda: table.query(**query_kwargs))
+        for item in resp.get('Items', []):
+            if item.get('username') != '_metadata':
+                items.append(item)
+        if 'LastEvaluatedKey' not in resp:
+            break
+        query_kwargs['ExclusiveStartKey'] = resp['LastEvaluatedKey']
+    return items
+
+
+def put_user_data(event):
+    """Merge arbitrary attributes onto a user item via update_item."""
+    try:
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
+        username = params.get('username')
+
+        if not validate_table_id(table_id):
+            return create_response(400, {'error': 'Invalid tableId format'})
+        if not validate_username(username):
+            return create_response(400, {'error': 'Invalid username format'})
+
+        body = json.loads(event.get('body', '{}'))
+        if not body or not isinstance(body, dict):
+            return create_response(400, {'error': 'Request body must be a non-empty JSON object'})
+
+        # Verify table exists
+        meta = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in meta:
+            return create_response(404, {'error': 'Table not found'})
+
+        # Auth check: user can only write to their own item
+        if AUTH_ENABLED:
+            identity = get_identity_from_event(event)
+            if not identity.get('principal'):
+                return create_response(401, {'error': 'Authentication required'})
+            if not check_authorization(identity, username=username, require_self=True):
+                return create_response(403, {'error': 'Only the user or admin can update this data'})
+
+        # Build UpdateExpression dynamically from body keys
+        reserved_keys = {'tableId', 'username', 'lastUpdated'}
+        update_parts = []
+        attr_names = {}
+        attr_values = {}
+
+        for i, (key, value) in enumerate(body.items()):
+            if key in reserved_keys:
+                continue
+            if not _FIELD_NAME_RE.match(key):
+                return create_response(400, {'error': f'Invalid field name: {key}'})
+            placeholder_name = f'#k{i}'
+            placeholder_value = f':v{i}'
+            update_parts.append(f'{placeholder_name} = {placeholder_value}')
+            attr_names[placeholder_name] = key
+            attr_values[placeholder_value] = value
+
+        if not update_parts:
+            return create_response(400, {'error': 'No valid fields to update'})
+
+        # Always set lastUpdated
+        update_parts.append('#lu = :now')
+        attr_names['#lu'] = 'lastUpdated'
+        attr_values[':now'] = datetime.utcnow().isoformat()
+
+        retry_dynamo(lambda: table.update_item(
+            Key={'tableId': table_id, 'username': username},
+            UpdateExpression='SET ' + ', '.join(update_parts),
+            ExpressionAttributeNames=attr_names,
+            ExpressionAttributeValues=attr_values,
+        ))
+
+        return create_response(200, {
+            'username': username,
+            'fieldsUpdated': list(body.keys()),
+            'lastUpdated': attr_values[':now']
+        })
+    except json.JSONDecodeError:
+        return create_response(400, {'error': 'Invalid JSON in request body'})
+    except Exception as e:
+        print(f"[ERROR] put_user_data exception: {e}")
+        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+
+
+def get_numeric_aggregate(event):
+    """Compute average + distribution for any numeric field across all users in a table."""
+    try:
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
+        field_name = params.get('fieldName')
+
+        if not validate_table_id(table_id):
+            return create_response(400, {'error': 'Invalid tableId format'})
+        if not field_name or not _FIELD_NAME_RE.match(field_name):
+            return create_response(400, {'error': 'Invalid fieldName format'})
+
+        # Verify table exists
+        meta = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in meta:
+            return create_response(404, {'error': 'Table not found'})
+
+        # Auth check: require valid token
+        if AUTH_ENABLED:
+            identity = get_identity_from_event(event)
+            if not identity.get('principal'):
+                return create_response(401, {'error': 'Authentication required'})
+
+        users = _scan_table_users(table_id)
+
+        values = []
+        for user in users:
+            val = user.get(field_name)
+            if val is not None:
+                try:
+                    numeric_val = float(val)
+                    values.append(numeric_val)
+                except (ValueError, TypeError):
+                    continue
+
+        if not values:
+            return create_response(200, {
+                'fieldName': field_name,
+                'average': 0,
+                'totalStudents': 0,
+                'distribution': []
+            })
+
+        avg = round(sum(values) / len(values), 1)
+        freq = {}
+        for v in values:
+            freq[v] = freq.get(v, 0) + 1
+        distribution = [{'value': k, 'count': v} for k, v in sorted(freq.items())]
+
+        return create_response(200, {
+            'fieldName': field_name,
+            'average': avg,
+            'totalStudents': len(values),
+            'distribution': distribution
+        })
+    except Exception as e:
+        print(f"[ERROR] get_numeric_aggregate exception: {e}")
+        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+
+
+def post_words_aggregate(event):
+    """Store a word and return aggregated word frequencies for any text field."""
+    try:
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
+        field_name = params.get('fieldName')
+
+        if not validate_table_id(table_id):
+            return create_response(400, {'error': 'Invalid tableId format'})
+        if not field_name or not _FIELD_NAME_RE.match(field_name):
+            return create_response(400, {'error': 'Invalid fieldName format'})
+
+        body = json.loads(event.get('body', '{}'))
+        word = body.get('word', '')
+        username = body.get('username')
+
+        if not isinstance(word, str):
+            return create_response(400, {'error': 'word must be a string'})
+        word = word.strip().lower()
+
+        if not word or not username:
+            return create_response(400, {'error': 'word and username are required'})
+        if not validate_username(username):
+            return create_response(400, {'error': 'Invalid username format'})
+        if word in _PROFANITY_BLOCKLIST:
+            return create_response(400, {'error': 'Word not allowed'})
+
+        # Verify table exists
+        meta = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in meta:
+            return create_response(404, {'error': 'Table not found'})
+
+        # Auth check: user can only submit for themselves
+        if AUTH_ENABLED:
+            identity = get_identity_from_event(event)
+            if not identity.get('principal'):
+                return create_response(401, {'error': 'Authentication required'})
+            if not check_authorization(identity, username=username, require_self=True):
+                return create_response(403, {'error': 'Only the user or admin can submit words'})
+
+        # Store word on user item
+        retry_dynamo(lambda: table.update_item(
+            Key={'tableId': table_id, 'username': username},
+            UpdateExpression='SET #f = :w, #lu = :now',
+            ExpressionAttributeNames={'#f': field_name, '#lu': 'lastUpdated'},
+            ExpressionAttributeValues={':w': word, ':now': datetime.utcnow().isoformat()}
+        ))
+
+        # Aggregate all words
+        users = _scan_table_users(table_id)
+        tallies = {}
+        for user in users:
+            w = user.get(field_name)
+            if w and isinstance(w, str):
+                tallies[w] = tallies.get(w, 0) + 1
+
+        words = sorted(
+            [{'text': k, 'count': v} for k, v in tallies.items()],
+            key=lambda x: -x['count']
+        )
+
+        return create_response(200, {
+            'fieldName': field_name,
+            'words': words
+        })
+    except json.JSONDecodeError:
+        return create_response(400, {'error': 'Invalid JSON in request body'})
+    except Exception as e:
+        print(f"[ERROR] post_words_aggregate exception: {e}")
+        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+
+
+def get_poll_aggregate(event):
+    """Aggregate poll responses across all users in a table."""
+    try:
+        params = event.get('pathParameters') or {}
+        table_id = params.get('tableId')
+        poll_id = params.get('pollId')
+
+        if not validate_table_id(table_id):
+            return create_response(400, {'error': 'Invalid tableId format'})
+        if not poll_id or not _FIELD_NAME_RE.match(poll_id):
+            return create_response(400, {'error': 'Invalid pollId format'})
+
+        attr_name = f'poll_{poll_id}'
+
+        # Verify table exists
+        meta = retry_dynamo(lambda: table.get_item(
+            Key={'tableId': table_id, 'username': '_metadata'},
+            ConsistentRead=READ_CONSISTENT
+        ))
+        if 'Item' not in meta:
+            return create_response(404, {'error': 'Table not found'})
+
+        # Auth check: require valid token
+        if AUTH_ENABLED:
+            identity = get_identity_from_event(event)
+            if not identity.get('principal'):
+                return create_response(401, {'error': 'Authentication required'})
+
+        users = _scan_table_users(table_id)
+
+        response_count = 0
+        tallies = {}
+        for user in users:
+            response = user.get(attr_name)
+            if response is None:
+                continue
+            response_count += 1
+            # Normalize to list (single-select polls store a string)
+            choices = response if isinstance(response, list) else [response]
+            for choice in choices:
+                if isinstance(choice, str):
+                    tallies[choice] = tallies.get(choice, 0) + 1
+
+        distribution = {}
+        if response_count > 0:
+            distribution = {k: round(v / response_count, 2) for k, v in tallies.items()}
+
+        return create_response(200, {
+            'pollId': poll_id,
+            'responseCount': response_count,
+            'distribution': distribution
+        })
+    except Exception as e:
+        print(f"[ERROR] get_poll_aggregate exception: {e}")
+        return create_response(500, {'error': f'Internal server error: {str(e)}'})
+
+
+# ============================================================================
+# Health Check
+# ============================================================================
+
 def health(event):
     status = {
         'tableName': TABLE_NAME,
@@ -1656,9 +1960,17 @@ def handler(event, context):
             return patch_user_tasks(event)
         elif route_key == 'DELETE /tables/{tableId}/users/{username}/tasks':
             return delete_user_tasks(event)
-        elif route_key == 'POST /sessions': 
+        elif route_key == 'PUT /tables/{tableId}/users/{username}/data':
+            return put_user_data(event)
+        elif route_key == 'GET /tables/{tableId}/aggregate/numeric/{fieldName}':
+            return get_numeric_aggregate(event)
+        elif route_key == 'POST /tables/{tableId}/aggregate/words/{fieldName}':
+            return post_words_aggregate(event)
+        elif route_key == 'GET /tables/{tableId}/aggregate/poll/{pollId}':
+            return get_poll_aggregate(event)
+        elif route_key == 'POST /sessions':
             return create_session(event)
-        elif route_key == 'GET /sessions/{sessionId}':  
+        elif route_key == 'GET /sessions/{sessionId}':
             return get_session(event)
         elif route_key == 'PATCH /sessions/{sessionId}':
             return update_session(event)
@@ -1685,6 +1997,26 @@ def handler(event, context):
             return list_users(event)
         elif method == 'GET' and '/users/' in path and path.count('/') == 4:
             return get_user(event)
+        elif method == 'PUT' and '/users/' in path and '/data' in path and path.count('/') == 5:
+            # PUT /tables/{tableId}/users/{username}/data
+            parts = path.strip('/').split('/')
+            event.setdefault('pathParameters', {}).update({'tableId': parts[1], 'username': parts[3]})
+            return put_user_data(event)
+        elif method == 'GET' and '/aggregate/numeric/' in path and path.count('/') == 5:
+            # GET /tables/{tableId}/aggregate/numeric/{fieldName}
+            parts = path.strip('/').split('/')
+            event.setdefault('pathParameters', {}).update({'tableId': parts[1], 'fieldName': parts[4]})
+            return get_numeric_aggregate(event)
+        elif method == 'POST' and '/aggregate/words/' in path and path.count('/') == 5:
+            # POST /tables/{tableId}/aggregate/words/{fieldName}
+            parts = path.strip('/').split('/')
+            event.setdefault('pathParameters', {}).update({'tableId': parts[1], 'fieldName': parts[4]})
+            return post_words_aggregate(event)
+        elif method == 'GET' and '/aggregate/poll/' in path and path.count('/') == 5:
+            # GET /tables/{tableId}/aggregate/poll/{pollId}
+            parts = path.strip('/').split('/')
+            event.setdefault('pathParameters', {}).update({'tableId': parts[1], 'pollId': parts[4]})
+            return get_poll_aggregate(event)
         elif method == 'PUT' and '/users/' in path and '/moral-compass' in path and path.count('/') == 5:
             return put_user_moral_compass(event)
         elif method == 'PUT' and '/users/' in path and '/moralcompass' in path and path.count('/') == 5:
