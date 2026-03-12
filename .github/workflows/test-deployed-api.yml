@@ -1,0 +1,126 @@
+name: Test Deployed API
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: 'API base URL (leave blank to auto-detect from terraform state)'
+        required: false
+        default: ''
+      run_pagination_tests:
+        description: 'Run pagination tests (creates 105 users + 55 tables)'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  resolve-url:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      api_base_url: ${{ steps.resolve.outputs.api_base_url }}
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+    steps:
+      - name: Use provided URL
+        id: provided
+        if: inputs.api_url != ''
+        run: echo "api_base_url=${{ inputs.api_url }}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout
+        if: inputs.api_url == ''
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        if: inputs.api_url == ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.DATA_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.DATA_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        if: inputs.api_url == ''
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+          terraform_wrapper: false
+
+      - name: Resolve URL from terraform state
+        id: terraform
+        if: inputs.api_url == ''
+        working-directory: infra
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            WS="dev"
+          else
+            WS="stage"
+          fi
+          echo "Using workspace: $WS"
+
+          terraform init -input=false
+          terraform workspace select "$WS"
+          URL=$(terraform output -raw api_base_url)
+
+          if [[ -z "$URL" || "$URL" == "null" ]]; then
+            echo "::error::Failed to get api_base_url from terraform workspace '$WS'"
+            exit 1
+          fi
+
+          echo "api_base_url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Set resolved URL
+        id: resolve
+        run: |
+          URL="${{ steps.provided.outputs.api_base_url || steps.terraform.outputs.api_base_url }}"
+          echo "Resolved API URL: $URL"
+          echo "api_base_url=$URL" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: resolve-url
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      API_BASE_URL: ${{ needs.resolve-url.outputs.api_base_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Health check
+        run: bash scripts/verify_api_reachable.sh "$API_BASE_URL"
+
+      - name: Run API integration tests
+        run: python tests/test_api_integration.py "$API_BASE_URL"
+
+      - name: Run pagination tests
+        if: inputs.run_pagination_tests == 'true'
+        run: python tests/test_api_pagination.py "$API_BASE_URL"
+
+      - name: Summary
+        if: always()
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## Test Deployed API Results
+
+          | Setting | Value |
+          |---------|-------|
+          | **API URL** | \`$API_BASE_URL\` |
+          | **Branch** | \`${{ github.ref_name }}\` |
+          | **Pagination tests** | ${{ inputs.run_pagination_tests }} |
+          | **URL source** | ${{ inputs.api_url != '' && 'manual input' || 'terraform state' }} |
+          EOF
