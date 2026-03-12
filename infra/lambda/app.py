@@ -1996,6 +1996,8 @@ def handler(event, context):
         elif method == 'GET' and path.endswith('/users') and path.count('/') == 3:
             return list_users(event)
         elif method == 'GET' and '/users/' in path and path.count('/') == 4:
+            parts = path.strip('/').split('/')
+            event.setdefault('pathParameters', {}).update({'tableId': parts[1], 'username': parts[3]})
             return get_user(event)
         elif method == 'PUT' and '/users/' in path and '/data' in path and path.count('/') == 5:
             # PUT /tables/{tableId}/users/{username}/data
@@ -2026,6 +2028,8 @@ def handler(event, context):
         elif method == 'DELETE' and '/users/' in path and '/tasks' in path and path.count('/') == 5:
             return delete_user_tasks(event)
         elif method == 'PUT' and '/users/' in path and path.count('/') == 4:
+            parts = path.strip('/').split('/')
+            event.setdefault('pathParameters', {}).update({'tableId': parts[1], 'username': parts[3]})
             return put_user(event)
         elif method == 'POST' and path == '/sessions': 
             return create_session(event)
