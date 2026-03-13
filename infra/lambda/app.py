@@ -1077,29 +1077,11 @@ def list_users(event):
 
         users_to_return = []
         for item in page_items:
-            user_dict = {
-                'username': item['username'],
-                'submissionCount': item.get('submissionCount', 0),
-                'totalCount': item.get('totalCount', 0),
-                'lastUpdated': item.get('lastUpdated')
-            }
-            # Include moral compass fields if present
-            if 'moralCompassScore' in item:
-                user_dict['moralCompassScore'] = item['moralCompassScore']
-            if 'metrics' in item:
-                user_dict['metrics'] = item['metrics']
-            if 'primaryMetric' in item:
-                user_dict['primaryMetric'] = item['primaryMetric']
-            if 'tasksCompleted' in item:
-                user_dict['tasksCompleted'] = item['tasksCompleted']
-            if 'totalTasks' in item:
-                user_dict['totalTasks'] = item['totalTasks']
-            if 'questionsCorrect' in item:
-                user_dict['questionsCorrect'] = item['questionsCorrect']
-            if 'totalQuestions' in item:
-                user_dict['totalQuestions'] = item['totalQuestions']
-            if 'teamName' in item:
-                user_dict['teamName'] = item['teamName']
+            # Return all fields except internal DynamoDB keys
+            internal_keys = {'tableId'}
+            user_dict = {k: v for k, v in item.items() if k not in internal_keys}
+            user_dict.setdefault('submissionCount', 0)
+            user_dict.setdefault('totalCount', 0)
             users_to_return.append(user_dict)
         
         # Sort by moralCompassScore if present, otherwise by submissionCount
@@ -1153,16 +1135,12 @@ def get_user(event):
         if 'Item' not in resp:
             return create_response(404, {'error': 'User not found in table'})
         item = resp['Item']
-        response_body = {
-            'username': item['username'],
-            'submissionCount': item.get('submissionCount', 0),
-            'totalCount': item.get('totalCount', 0),
-            'lastUpdated': item.get('lastUpdated')
-        }
-        if item.get('teamName'):
-            response_body['teamName'] = item['teamName']
-        if item.get('completedTaskIds'):
-            response_body['completedTaskIds'] = item['completedTaskIds']
+        # Return all fields except internal DynamoDB keys
+        internal_keys = {'tableId'}
+        response_body = {k: v for k, v in item.items() if k not in internal_keys}
+        # Ensure defaults for core fields
+        response_body.setdefault('submissionCount', 0)
+        response_body.setdefault('totalCount', 0)
         return create_response(200, response_body)
     except Exception as e:
         print(f"[ERROR] get_user exception: {e}")
