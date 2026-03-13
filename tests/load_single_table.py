@@ -20,14 +20,17 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 class SingleTableLoadTest:
     """Load test for single table with concurrent user operations"""
-    
-    def __init__(self, api_base_url: str):
+
+    def __init__(self, api_base_url: str, auth_token: str = None):
         self.api_base_url = api_base_url.rstrip('/')
         self.table_id = f"load-test-single-{uuid.uuid4().hex[:8]}"
         self.user_count = 100
         self.console = Console()
         self.errors = []
         self.latencies = []
+        self.auth_headers = {}
+        if auth_token:
+            self.auth_headers = {"Authorization": f"Bearer {auth_token}"}
         
     def log_error(self, message: str):
         """Log error message"""
@@ -162,7 +165,7 @@ class SingleTableLoadTest:
         self.console.print(f"🔗 API Base URL: {self.api_base_url}")
         self.console.print(f"🧪 Table ID: {self.table_id}")
         
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(headers=self.auth_headers) as session:
             # Create table first
             if not await self.create_table(session):
                 return False
@@ -273,11 +276,16 @@ def get_api_base_url() -> str:
 async def main():
     """Main function"""
     api_base_url = get_api_base_url()
-    
-    # Run load test
-    test = SingleTableLoadTest(api_base_url)
+    auth_token = os.getenv('AUTH_TOKEN')
+    auth_principal = os.getenv('AUTH_PRINCIPAL')
+
+    if auth_principal:
+        print(f"Skipping single table load test: is_self auth prevents multi-user creation (principal={auth_principal})")
+        sys.exit(0)
+
+    test = SingleTableLoadTest(api_base_url, auth_token=auth_token)
     success = await test.run_load_test()
-    
+
     sys.exit(0 if success else 1)
 
 

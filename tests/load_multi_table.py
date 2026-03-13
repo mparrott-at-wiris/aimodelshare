@@ -20,14 +20,17 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 class MultiTableLoadTest:
     """Load test for multiple tables with mixed workload"""
-    
-    def __init__(self, api_base_url: str):
+
+    def __init__(self, api_base_url: str, auth_token: str = None):
         self.api_base_url = api_base_url.rstrip('/')
         self.table_count = 5
         self.users_per_table = 20
         self.console = Console()
         self.errors = []
         self.table_ids = []
+        self.auth_headers = {}
+        if auth_token:
+            self.auth_headers = {"Authorization": f"Bearer {auth_token}"}
         
     def log_error(self, message: str):
         """Log error message"""
@@ -188,7 +191,7 @@ class MultiTableLoadTest:
         self.console.print(f"📊 Target: {self.table_count} tables × {self.users_per_table} users = {self.table_count * self.users_per_table} total users")
         self.console.print(f"🔗 API Base URL: {self.api_base_url}")
         
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(headers=self.auth_headers) as session:
             # Phase 1: Create tables
             self.console.print(f"\n📦 Phase 1: Creating {self.table_count} tables...")
             
@@ -316,11 +319,16 @@ def get_api_base_url() -> str:
 async def main():
     """Main function"""
     api_base_url = get_api_base_url()
-    
-    # Run load test
-    test = MultiTableLoadTest(api_base_url)
+    auth_token = os.getenv('AUTH_TOKEN')
+    auth_principal = os.getenv('AUTH_PRINCIPAL')
+
+    if auth_principal:
+        print(f"Skipping multi table load test: is_self auth prevents multi-user creation (principal={auth_principal})")
+        sys.exit(0)
+
+    test = MultiTableLoadTest(api_base_url, auth_token=auth_token)
     success = await test.run_load_test()
-    
+
     sys.exit(0 if success else 1)
 
 

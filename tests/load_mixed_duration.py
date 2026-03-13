@@ -23,20 +23,23 @@ from rich.live import Live
 
 class MixedDurationLoadTest:
     """Load test with time-based mixed workload"""
-    
-    def __init__(self, api_base_url: str):
+
+    def __init__(self, api_base_url: str, auth_token: str = None):
         self.api_base_url = api_base_url.rstrip('/')
         self.table_id = f"load-test-duration-{uuid.uuid4().hex[:8]}"
         self.user_count = 100
-        
+
         # Get duration from environment variable or use default
         self.duration_seconds = int(os.getenv('LOAD_DURATION_SECONDS', 20))  # Default 20s for CI
         # Reduce concurrency for CI stability vs production (30 vs 50)
         self.concurrent_workers = 30
-        
+
         self.console = Console()
         self.errors = []
         self.is_running = False
+        self.auth_headers = {}
+        if auth_token:
+            self.auth_headers = {"Authorization": f"Bearer {auth_token}"}
         self.stats = {
             'reads': {'count': 0, 'latencies': [], 'errors': 0},
             'updates': {'count': 0, 'latencies': [], 'errors': 0},
@@ -244,7 +247,7 @@ class MixedDurationLoadTest:
         self.console.print(f"🔗 API Base URL: {self.api_base_url}")
         self.console.print(f"🧪 Table ID: {self.table_id}")
         
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(headers=self.auth_headers) as session:
             # Phase 1: Create table and users
             self.console.print(f"\n📦 Phase 1: Setup (table + {self.user_count} users)...")
             
@@ -357,18 +360,22 @@ def get_api_base_url() -> str:
 async def main():
     """Main function"""
     api_base_url = get_api_base_url()
-    
-    # Show configuration
+    auth_token = os.getenv('AUTH_TOKEN')
+    auth_principal = os.getenv('AUTH_PRINCIPAL')
+
+    if auth_principal:
+        print(f"Skipping mixed duration load test: is_self auth prevents multi-user creation (principal={auth_principal})")
+        sys.exit(0)
+
     duration = int(os.getenv('LOAD_DURATION_SECONDS', 20))
     console = Console()
-    console.print(f"🔧 Configuration:", style="bold")
+    console.print(f"Configuration:", style="bold")
     console.print(f"   Duration: {duration} seconds")
     console.print(f"   API URL: {api_base_url}")
-    
-    # Run load test
-    test = MixedDurationLoadTest(api_base_url)
+
+    test = MixedDurationLoadTest(api_base_url, auth_token=auth_token)
     success = await test.run_load_test()
-    
+
     sys.exit(0 if success else 1)
 
 
