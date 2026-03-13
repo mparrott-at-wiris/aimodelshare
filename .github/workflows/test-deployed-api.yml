@@ -89,6 +89,8 @@ jobs:
       contents: read
     env:
       API_BASE_URL: ${{ needs.resolve-url.outputs.api_base_url }}
+      username: ${{ secrets.AIMODELSHARE_USERNAME }}
+      password: ${{ secrets.AIMODELSHARE_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -99,7 +101,13 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests boto3
+
+      - name: Authenticate with Cognito
+        run: |
+          TOKEN=$(python tests/auth_helper.py)
+          echo "::add-mask::$TOKEN"
+          echo "AUTH_TOKEN=$TOKEN" >> "$GITHUB_ENV"
 
       - name: Health check
         run: bash scripts/verify_api_reachable.sh "$API_BASE_URL"

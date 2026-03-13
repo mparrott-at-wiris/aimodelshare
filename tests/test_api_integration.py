@@ -7,6 +7,7 @@ to ensure the deployed API is working correctly.
 (Updated: test_list_tables_with_data now polls to handle eventual consistency)
 """
 
+import os
 import requests
 import json
 import sys
@@ -16,14 +17,16 @@ from typing import Dict, Any
 
 class APIIntegrationTests:
     """Test suite for API integration testing"""
-    
-    def __init__(self, api_base_url: str):
+
+    def __init__(self, api_base_url: str, auth_token: str = None):
         self.api_base_url = api_base_url.rstrip('/')
         self.test_table_id = f"test-table-{uuid.uuid4().hex[:8]}"
         self.test_username = f"testuser-{uuid.uuid4().hex[:8]}"
         self.headers = {
             'Content-Type': 'application/json'
         }
+        if auth_token:
+            self.headers['Authorization'] = f'Bearer {auth_token}'
         self.errors = []
         
     def wait_for_api_ready(self, max_attempts: int = 10, delay: int = 2):
@@ -398,22 +401,23 @@ class APIIntegrationTests:
 
 def main():
     """Main function to run API integration tests"""
-    if len(sys.argv) != 2:
-        print("Usage: python test_api_integration.py <api_base_url>")
-        print("Example: python test_api_integration.py https://abc123.execute-api.us-east-1.amazonaws.com/dev")
+    if len(sys.argv) < 2:
+        print("Usage: python test_api_integration.py <api_base_url> [auth_token]")
+        print("  auth_token can also be set via AUTH_TOKEN env var")
         sys.exit(1)
-        
+
     api_base_url = sys.argv[1]
-    
+    auth_token = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('AUTH_TOKEN')
+
     # Validate URL format
     if not api_base_url.startswith(('http://', 'https://')):
         print(f"❌ Invalid API URL format: {api_base_url}")
         sys.exit(1)
-        
+
     # Run tests
-    tester = APIIntegrationTests(api_base_url)
+    tester = APIIntegrationTests(api_base_url, auth_token=auth_token)
     success = tester.run_all_tests()
-    
+
     sys.exit(0 if success else 1)
 
 

@@ -10,6 +10,7 @@ Exit code 0 on success, 1 on any failure.
 """
 
 import json
+import os
 import sys
 import time
 import uuid
@@ -20,7 +21,7 @@ TIMEOUT = 30
 
 
 class GenericEndpointTests:
-    def __init__(self, api_base_url: str):
+    def __init__(self, api_base_url: str, auth_token: str = None):
         self.base = api_base_url.rstrip("/")
         self.errors: List[str] = []
         self.table_id = f"generic-test-{uuid.uuid4().hex[:8]}"
@@ -28,6 +29,8 @@ class GenericEndpointTests:
         self.user_b = f"user-b-{uuid.uuid4().hex[:6]}"
         self.session = requests.Session()
         self.session.headers.update({"Content-Type": "application/json"})
+        if auth_token:
+            self.session.headers.update({"Authorization": f"Bearer {auth_token}"})
 
     # ── helpers ──────────────────────────────────────────────────
 
@@ -469,14 +472,16 @@ class GenericEndpointTests:
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python tests/test_api_generic_endpoints.py <api_base_url>")
+    if len(sys.argv) < 2:
+        print("Usage: python tests/test_api_generic_endpoints.py <api_base_url> [auth_token]")
+        print("  auth_token can also be set via AUTH_TOKEN env var")
         sys.exit(1)
     url = sys.argv[1]
+    auth_token = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('AUTH_TOKEN')
     if not url.startswith(("http://", "https://")):
         print(f"Invalid URL: {url}")
         sys.exit(1)
-    tester = GenericEndpointTests(url)
+    tester = GenericEndpointTests(url, auth_token=auth_token)
     sys.exit(0 if tester.run() else 1)
 
 

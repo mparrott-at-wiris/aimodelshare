@@ -32,12 +32,15 @@ class PaginationTestFailure(Exception):
     pass
 
 class PaginationTester:
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str, auth_token: str = None):
         self.base_url = base_url.rstrip('/')
         self.errors: List[str] = []
         self.test_table_id = f"pagination-users-{uuid.uuid4().hex[:8]}"
         self.session = requests.Session()
         self.headers = {"Content-Type": "application/json"}
+        if auth_token:
+            self.headers["Authorization"] = f"Bearer {auth_token}"
+            self.session.headers.update({"Authorization": f"Bearer {auth_token}"})
 
     def log(self, msg: str):
         print(msg)
@@ -194,14 +197,16 @@ class PaginationTester:
             raise PaginationTestFailure(f"{len(self.errors)} pagination assertions failed")
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python tests/test_api_pagination.py <api_base_url>")
+    if len(sys.argv) < 2:
+        print("Usage: python tests/test_api_pagination.py <api_base_url> [auth_token]")
+        print("  auth_token can also be set via AUTH_TOKEN env var")
         sys.exit(1)
     api_base_url = sys.argv[1]
+    auth_token = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('AUTH_TOKEN')
     if not api_base_url.startswith(('http://', 'https://')):
         print(f"Invalid API URL: {api_base_url}")
         sys.exit(1)
-    tester = PaginationTester(api_base_url)
+    tester = PaginationTester(api_base_url, auth_token=auth_token)
     try:
         tester.run()
     except PaginationTestFailure as e:
