@@ -342,7 +342,7 @@ class APIIntegrationTests:
                 'submissionCount': -5,  # Invalid negative value
                 'totalCount': 10
             }
-            response = self.make_request('PUT', f'/tables/{self.test_table_id}/users/testuser', payload)
+            response = self.make_request('PUT', f'/tables/{self.test_table_id}/users/{self.test_username}', payload)
             if response.status_code == 400:
                 data = response.json()
                 if 'error' in data:
