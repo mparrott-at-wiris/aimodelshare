@@ -46,10 +46,31 @@ def get_auth_token() -> str:
     return response["AuthenticationResult"]["IdToken"]
 
 
+def get_principal_from_token(token: str) -> str:
+    """Extract the principal (cognito:username > email > sub) from a JWT."""
+    import json
+    import base64
+
+    # Decode JWT payload without verification (matches Lambda behavior)
+    payload = token.split(".")[1]
+    # Add padding
+    payload += "=" * (4 - len(payload) % 4)
+    claims = json.loads(base64.urlsafe_b64decode(payload))
+
+    return (
+        claims.get("cognito:username")
+        or claims.get("email")
+        or claims.get("sub")
+    )
+
+
 if __name__ == "__main__":
     try:
         token = get_auth_token()
-        print(token)
+        principal = get_principal_from_token(token)
+        # Print as key=value lines for easy parsing in shell
+        print(f"token={token}")
+        print(f"principal={principal}")
     except Exception as e:
         print(f"Authentication failed: {e}", file=sys.stderr)
         sys.exit(1)

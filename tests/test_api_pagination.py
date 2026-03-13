@@ -11,6 +11,10 @@ Assumptions:
 - lastKey is a JSON object returned when additional pages exist.
 - In-page sorting only (not global).
 
+When AUTH_PRINCIPAL is set (auth-enabled environment), user pagination tests
+are skipped because the is_self check prevents creating multiple users.
+Table pagination is always tested.
+
 Exit code 0 on success, 1 on any failure.
 """
 import os
@@ -32,10 +36,11 @@ class PaginationTestFailure(Exception):
     pass
 
 class PaginationTester:
-    def __init__(self, base_url: str, auth_token: str = None):
+    def __init__(self, base_url: str, auth_token: str = None, auth_principal: str = None):
         self.base_url = base_url.rstrip('/')
         self.errors: List[str] = []
         self.test_table_id = f"pagination-users-{uuid.uuid4().hex[:8]}"
+        self.auth_principal = auth_principal
         self.session = requests.Session()
         self.headers = {"Content-Type": "application/json"}
         if auth_token:
@@ -182,13 +187,24 @@ class PaginationTester:
 
     def run(self):
         self.log("--- Pagination Test Suite Starting ---")
-        self.create_table(self.test_table_id)
-        self.bulk_create_users()
+
+        # User pagination requires creating 105 users. With auth enabled,
+        # is_self prevents writing as any user other than the principal,
+        # so we skip user pagination tests in that case.
+        if self.auth_principal:
+            self.log(f"Auth enabled (principal={self.auth_principal})")
+            self.log("Skipping user pagination tests (is_self prevents multi-user creation)")
+        else:
+            self.create_table(self.test_table_id)
+            self.bulk_create_users()
+            self.test_user_pagination_default()
+            self.test_user_pagination_small_limit()
+            self.test_malformed_last_key()
+
+        # Table pagination always works — create_table only requires auth, not self
         self.bulk_create_tables()
-        self.test_user_pagination_default()
-        self.test_user_pagination_small_limit()
-        self.test_malformed_last_key()
         self.test_table_pagination()
+
         self.log("--- Pagination Test Suite Complete ---")
         if self.errors:
             self.log("\nFailures:")
@@ -203,10 +219,11 @@ def main():
         sys.exit(1)
     api_base_url = sys.argv[1]
     auth_token = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('AUTH_TOKEN')
+    auth_principal = os.environ.get('AUTH_PRINCIPAL')
     if not api_base_url.startswith(('http://', 'https://')):
         print(f"Invalid API URL: {api_base_url}")
         sys.exit(1)
-    tester = PaginationTester(api_base_url, auth_token=auth_token)
+    tester = PaginationTester(api_base_url, auth_token=auth_token, auth_principal=auth_principal)
     try:
         tester.run()
     except PaginationTestFailure as e:

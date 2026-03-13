@@ -150,9 +150,13 @@ jobs:
       - name: Authenticate with Cognito
         id: auth
         run: |
-          TOKEN=$(python tests/auth_helper.py)
+          OUTPUT=$(python tests/auth_helper.py)
+          TOKEN=$(echo "$OUTPUT" | grep '^token=' | cut -d= -f2-)
+          PRINCIPAL=$(echo "$OUTPUT" | grep '^principal=' | cut -d= -f2-)
           echo "::add-mask::$TOKEN"
           echo "AUTH_TOKEN=$TOKEN" >> "$GITHUB_ENV"
+          echo "AUTH_PRINCIPAL=$PRINCIPAL" >> "$GITHUB_ENV"
+          echo "Authenticated as: $PRINCIPAL"
 
       - name: Run API Integration Tests
         working-directory: .

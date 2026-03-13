@@ -18,10 +18,11 @@ from typing import Dict, Any
 class APIIntegrationTests:
     """Test suite for API integration testing"""
 
-    def __init__(self, api_base_url: str, auth_token: str = None):
+    def __init__(self, api_base_url: str, auth_token: str = None, auth_principal: str = None):
         self.api_base_url = api_base_url.rstrip('/')
         self.test_table_id = f"test-table-{uuid.uuid4().hex[:8]}"
-        self.test_username = f"testuser-{uuid.uuid4().hex[:8]}"
+        # When authenticated, use the real principal as username so is_self checks pass
+        self.test_username = auth_principal if auth_principal else f"testuser-{uuid.uuid4().hex[:8]}"
         self.headers = {
             'Content-Type': 'application/json'
         }
@@ -408,6 +409,7 @@ def main():
 
     api_base_url = sys.argv[1]
     auth_token = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('AUTH_TOKEN')
+    auth_principal = os.environ.get('AUTH_PRINCIPAL')
 
     # Validate URL format
     if not api_base_url.startswith(('http://', 'https://')):
@@ -415,7 +417,7 @@ def main():
         sys.exit(1)
 
     # Run tests
-    tester = APIIntegrationTests(api_base_url, auth_token=auth_token)
+    tester = APIIntegrationTests(api_base_url, auth_token=auth_token, auth_principal=auth_principal)
     success = tester.run_all_tests()
 
     sys.exit(0 if success else 1)
