@@ -1077,9 +1077,13 @@ def list_users(event):
 
         users_to_return = []
         for item in page_items:
-            # Return all fields except internal DynamoDB keys
-            internal_keys = {'tableId'}
-            user_dict = {k: v for k, v in item.items() if k not in internal_keys}
+            # Return all fields except internal/sensitive keys
+            excluded_keys = {
+                'tableId',
+                'submitterSub', 'submitterPrincipal', 'submitterEmail',
+                'ownerSub', 'ownerPrincipal', 'ownerEmail',
+            }
+            user_dict = {k: v for k, v in item.items() if k not in excluded_keys}
             user_dict.setdefault('submissionCount', 0)
             user_dict.setdefault('totalCount', 0)
             users_to_return.append(user_dict)
@@ -1135,9 +1139,13 @@ def get_user(event):
         if 'Item' not in resp:
             return create_response(404, {'error': 'User not found in table'})
         item = resp['Item']
-        # Return all fields except internal DynamoDB keys
-        internal_keys = {'tableId'}
-        response_body = {k: v for k, v in item.items() if k not in internal_keys}
+        # Return all fields except internal/sensitive keys
+        excluded_keys = {
+            'tableId',
+            'submitterSub', 'submitterPrincipal', 'submitterEmail',
+            'ownerSub', 'ownerPrincipal', 'ownerEmail',
+        }
+        response_body = {k: v for k, v in item.items() if k not in excluded_keys}
         # Ensure defaults for core fields
         response_body.setdefault('submissionCount', 0)
         response_body.setdefault('totalCount', 0)
@@ -1647,7 +1655,12 @@ def put_user_data(event):
                 return create_response(403, {'error': 'Only the user or admin can update this data'})
 
         # Build UpdateExpression dynamically from body keys
-        reserved_keys = {'tableId', 'username', 'lastUpdated'}
+        reserved_keys = {
+            'tableId', 'username', 'lastUpdated',
+            'submitterSub', 'submitterPrincipal', 'submitterEmail',
+            'ownerSub', 'ownerPrincipal', 'ownerEmail',
+            'moralCompassScore',
+        }
         update_parts = []
         attr_names = {}
         attr_values = {}
