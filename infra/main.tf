@@ -280,6 +280,42 @@ resource "aws_apigatewayv2_route" "route_put_user" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
 }
 
+# Generic data merge
+resource "aws_apigatewayv2_route" "route_put_user_data" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "PUT /tables/{tableId}/users/{username}/data"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
+}
+
+# Task management
+resource "aws_apigatewayv2_route" "route_patch_user_tasks" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "PATCH /tables/{tableId}/users/{username}/tasks"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
+}
+resource "aws_apigatewayv2_route" "route_delete_user_tasks" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "DELETE /tables/{tableId}/users/{username}/tasks"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
+}
+
+# Aggregation endpoints
+resource "aws_apigatewayv2_route" "route_get_numeric_aggregate" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "GET /tables/{tableId}/aggregate/numeric/{fieldName}"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
+}
+resource "aws_apigatewayv2_route" "route_post_words_aggregate" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "POST /tables/{tableId}/aggregate/words/{fieldName}"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
+}
+resource "aws_apigatewayv2_route" "route_get_poll_aggregate" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "GET /tables/{tableId}/aggregate/poll/{pollId}"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_proxy.id}"
+}
+
 # Moral compass routes
 resource "aws_apigatewayv2_route" "route_put_moral_compass" {
   api_id    = aws_apigatewayv2_api.http_api.id
