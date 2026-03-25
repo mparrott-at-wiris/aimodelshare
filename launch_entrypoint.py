@@ -248,11 +248,24 @@ def main():
                 show_error=True,
             )
 
-        # CASE 3: All other standard apps (judge, tutorial, etc.)
+        # CASE 3: what-is-ai needs an explicit concurrency limit to avoid
+        # SSE stream collisions under concurrent load (the Gradio 5.x
+        # default of 1 causes 404s and "response already started" errors).
+        elif app_name == "what-is-ai":
+            demo = build_standard_app(app_name)
+            logger.info(f"Launching what-is-ai with queue concurrency=20")
+            demo.queue(default_concurrency_limit=20)
+            demo.launch(
+                server_name="0.0.0.0",
+                server_port=port,
+                show_api=False,
+                show_error=True,
+            )
+
+        # CASE 4: All other standard apps (judge, tutorial, etc.)
         else:
             demo = build_standard_app(app_name)
-            logger.info(f"Launching standard app (NO QUEUE): {app_name}")
-            
+            logger.info(f"Launching standard app: {app_name}")
             demo.launch(
                 server_name="0.0.0.0",
                 server_port=port,
