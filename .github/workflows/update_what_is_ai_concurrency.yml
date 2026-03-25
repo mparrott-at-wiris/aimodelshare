@@ -1,0 +1,35 @@
+name: Update what-is-ai concurrency limit
+
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+
+jobs:
+  update-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Update what-is-ai concurrency env var
+        run: |
+          gcloud run services update what-is-ai \
+            --update-env-vars=GRADIO_DEFAULT_CONCURRENCY_LIMIT=20 \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }}
+
+      - name: Verify update
+        run: |
+          echo "Current env vars for what-is-ai:"
+          gcloud run services describe what-is-ai \
+            --region=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} \
+            --format="yaml(spec.template.spec.containers[0].env)"
