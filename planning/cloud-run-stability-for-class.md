@@ -247,6 +247,39 @@ ensure_table_and_get_data()   → client.list_users(limit=500)   ~1-2s
 
 ---
 
+### 3a-deep. ROOT CAUSE: Gradio SSE Session Deletion on Connection Drop (Iframe-Specific)
+
+**Confirmed root cause of the "red error banner" on iframe load**, even with a single user on a single warm instance.
+
+**The exact failure path in Gradio 5.49.1:**
+
+1. Browser loads iframe → Gradio JS client POSTs to `/queue/join` → server creates session in `pending_messages_per_session` LRU cache (size 2000)
+2. Client opens SSE connection to `/queue/data?session_hash=xxx`
+3. Server begins processing `handle_load` (3-9 seconds depending on app)
+4. Browser throttles or interrupts the cross-origin iframe SSE connection before `handle_load` completes
+5. Server catches `asyncio.CancelledError` and **explicitly deletes the session**: `del blocks._queue.pending_messages_per_session[session_hash]`
+6. Client auto-retries with the same `session_hash` → server looks it up → not found → **404**
+7. User sees red error banner
+
+**Source:** `gradio/routes.py:1453` — `if session_hash not in blocks._queue.pending_messages_per_session: raise HTTPException(404)`
+
+**Why it's worse in iframes than direct tabs:**
+- Browsers throttle network connections from cross-origin iframes more aggressively than same-tab connections
+- `http://localhost` → `https://*.a.run.app` (mixed content) is even more aggressively throttled
+- Production (`https://` → `https://`) is better but still affected during concurrent load
+
+**Why clicking multiple times eventually works:** Each iframe reload generates a new `session_hash`. Eventually one SSE connection stays stable long enough for `handle_load` to complete.
+
+**Known Gradio issues:** #6920, #9070, #9169, #10487, #11248 — all variants of the same session-not-found problem. No permanent fix in Gradio as of 5.49.1.
+
+**Mitigation layers (cumulative):**
+1. **Click-to-load pattern** (implemented) — iframe is visible/foreground when connection starts, reducing browser throttling
+2. **Speed up `handle_load`** (Tier 1-4 optimizations above) — shorter handler = smaller window for connection drops
+3. **Reduce `min-instances` to 1 during low-traffic periods** — eliminates multi-instance session affinity failures
+4. **Future: investigate Gradio web component (`<gradio-app>`)** instead of iframes — avoids cross-origin SSE entirely by loading the Gradio client in the parent page's origin context
+
+---
+
 ### 3b. CODE FIX: Thread-Safety in moral_compass_challenge and ethical_revelation (Future)
 
 **Problem:** Both `moral_compass_challenge.py` and `ethical_revelation.py` have unprotected shared mutable state (`_user_stats_cache` dict read/written without the existing `_cache_lock`). These apps are currently safe only because Gradio's implicit `default_concurrency_limit=1` serializes all requests. If concurrency is raised for these apps in the future, race conditions will occur on cache read/write.
