@@ -1726,7 +1726,6 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                         primary_metric="accuracy",
                         completed_task_ids=fetched_tasks,
                     )
-                    time.sleep(1.0)
                 except Exception:
                     pass
 
