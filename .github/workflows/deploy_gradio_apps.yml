@@ -98,7 +98,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=judge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=judge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-ai-consequences:
     runs-on: ubuntu-latest
@@ -126,7 +126,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=ai-consequences,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=ai-consequences,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-what-is-ai:
     runs-on: ubuntu-latest
@@ -154,7 +154,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=what-is-ai,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=what-is-ai,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   # Language-specific model building game deployments
   deploy-model-building-game-en:
@@ -183,7 +183,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,DEBUG_LOG=true
             
   deploy-model-building-game-ca:
     runs-on: ubuntu-latest
@@ -211,7 +211,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,DEBUG_LOG=true
             
   deploy-model-building-game-es:
     runs-on: ubuntu-latest
@@ -239,7 +239,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,DEBUG_LOG=true
 
   # Final variants for EN, ES, CA
   deploy-model-building-game-en-final:
@@ -268,7 +268,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-en-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-en-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,DEBUG_LOG=true
             
   deploy-model-building-game-es-final:
     runs-on: ubuntu-latest
@@ -296,7 +296,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-es-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-es-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,DEBUG_LOG=true
             
   deploy-model-building-game-ca-final:
     runs-on: ubuntu-latest
@@ -324,7 +324,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-ca-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-ca-final,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,DEBUG_LOG=true
 
   deploy-ethical-revelation:
     runs-on: ubuntu-latest
@@ -352,7 +352,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=ethical-revelation,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=ethical-revelation,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-moral-compass-challenge:
     runs-on: ubuntu-latest
@@ -380,7 +380,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=moral-compass-challenge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=moral-compass-challenge,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
 
   # Language-specific Bias Detective variants
@@ -410,7 +410,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=bias-detective-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=bias-detective-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-bias-detective-es:
     runs-on: ubuntu-latest
@@ -438,7 +438,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=bias-detective-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=bias-detective-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-bias-detective-ca:
     runs-on: ubuntu-latest
@@ -466,7 +466,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=bias-detective-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=bias-detective-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
 
   # NEW: Language-specific Fairness Fixer variants
@@ -496,7 +496,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=fairness-fixer-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=fairness-fixer-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-fairness-fixer-es:
     runs-on: ubuntu-latest
@@ -524,7 +524,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=fairness-fixer-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=fairness-fixer-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-fairness-fixer-ca:
     runs-on: ubuntu-latest
@@ -552,7 +552,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=fairness-fixer-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=fairness-fixer-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   # NEW: Language-specific Justice & Equity Upgrade variants
   deploy-justice-equity-upgrade-en:
@@ -581,7 +581,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=justice-equity-upgrade-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=justice-equity-upgrade-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-justice-equity-upgrade-es:
     runs-on: ubuntu-latest
@@ -609,7 +609,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=justice-equity-upgrade-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=justice-equity-upgrade-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-justice-equity-upgrade-ca:
     runs-on: ubuntu-latest
@@ -637,7 +637,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=justice-equity-upgrade-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=justice-equity-upgrade-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   # ------------------------------------------------------------
   # Collect and publish all deployed service URLs
