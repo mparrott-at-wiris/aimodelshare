@@ -1,0 +1,129 @@
+name: Download Cloud Run Error Logs
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "GCP project (moral-compass-apps or sustainability-apps)"
+        required: true
+        type: choice
+        options:
+          - moral-compass-apps
+          - sustainability-apps
+      service:
+        description: "Service name (e.g. what-is-ai, fairness-fixer-es-sustainability) or 'all' for all services"
+        required: false
+        default: "all"
+      hours:
+        description: "How many hours back to fetch (default: 24)"
+        required: false
+        default: "24"
+      severity:
+        description: "Minimum log severity"
+        required: true
+        type: choice
+        options:
+          - ERROR
+          - WARNING
+          - DEFAULT
+
+env:
+  REGION: us-central1
+
+jobs:
+  fetch-logs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Fetch Cloud Run error logs
+        run: |
+          set -euo pipefail
+
+          PROJECT="${{ inputs.project }}"
+          SERVICE="${{ inputs.service }}"
+          HOURS="${{ inputs.hours }}"
+          SEVERITY="${{ inputs.severity }}"
+          TIMESTAMP=$(date -u -d "${HOURS} hours ago" +%Y-%m-%dT%H:%M:%SZ)
+
+          mkdir -p logs
+
+          # Build the log filter
+          FILTER="resource.type=\"cloud_run_revision\""
+          FILTER="${FILTER} AND timestamp>=\"${TIMESTAMP}\""
+          FILTER="${FILTER} AND severity>=${SEVERITY}"
+
+          if [ "${SERVICE}" != "all" ]; then
+            FILTER="${FILTER} AND resource.labels.service_name=\"${SERVICE}\""
+          fi
+
+          echo "=== Log Query ==="
+          echo "Project: ${PROJECT}"
+          echo "Filter: ${FILTER}"
+          echo "================="
+
+          # Fetch logs as JSON (structured for analysis)
+          gcloud logging read "${FILTER}" \
+            --project="${PROJECT}" \
+            --format=json \
+            --limit=5000 \
+            > logs/errors_raw.json
+
+          TOTAL=$(jq length logs/errors_raw.json)
+          echo "Fetched ${TOTAL} log entries"
+
+          # Create a summary grouped by service and error message
+          jq -r '
+            group_by(.resource.labels.service_name)
+            | map({
+                service: .[0].resource.labels.service_name,
+                count: length,
+                errors: (
+                  group_by(.textPayload // .jsonPayload.message // "unknown")
+                  | map({
+                      message: (.[0].textPayload // .[0].jsonPayload.message // "unknown") | .[0:200],
+                      count: length,
+                      first: (sort_by(.timestamp) | first | .timestamp),
+                      last: (sort_by(.timestamp) | last | .timestamp)
+                    })
+                  | sort_by(-.count)
+                  | .[0:20]
+                )
+              })
+            | sort_by(-.count)
+          ' logs/errors_raw.json > logs/errors_summary.json
+
+          # Create a human-readable summary
+          echo "# Cloud Run Error Logs" > logs/errors_summary.md
+          echo "" >> logs/errors_summary.md
+          echo "**Project:** ${PROJECT}" >> logs/errors_summary.md
+          echo "**Service:** ${SERVICE}" >> logs/errors_summary.md
+          echo "**Period:** last ${HOURS} hours (since ${TIMESTAMP})" >> logs/errors_summary.md
+          echo "**Severity:** >= ${SEVERITY}" >> logs/errors_summary.md
+          echo "**Total entries:** ${TOTAL}" >> logs/errors_summary.md
+          echo "" >> logs/errors_summary.md
+
+          jq -r '
+            .[] |
+            "## \(.service) (\(.count) entries)\n" +
+            (.errors | map(
+              "- **\(.count)x** `\(.message)`\n  First: \(.first) | Last: \(.last)"
+            ) | join("\n")) + "\n"
+          ' logs/errors_summary.json >> logs/errors_summary.md
+
+          echo "=== Summary ==="
+          cat logs/errors_summary.md
+          echo "================"
+
+      - name: Upload log artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudrun-error-logs-${{ inputs.project }}-${{ github.run_number }}
+          path: logs/
+          retention-days: 7
