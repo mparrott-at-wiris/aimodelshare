@@ -115,7 +115,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,DEBUG_LOG=true
             
   deploy-model-building-game-ca-sustainability:
     runs-on: ubuntu-latest
@@ -143,7 +143,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,DEBUG_LOG=true
             
   deploy-model-building-game-es-sustainability:
     runs-on: ubuntu-latest
@@ -171,7 +171,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,DEBUG_LOG=true
 
   # Final variants for EN, ES, CA - Sustainability
   deploy-model-building-game-en-final-sustainability:
@@ -200,7 +200,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-en-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-en-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,DEBUG_LOG=true
             
   deploy-model-building-game-es-final-sustainability:
     runs-on: ubuntu-latest
@@ -228,7 +228,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-es-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-es-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,DEBUG_LOG=true
             
   deploy-model-building-game-ca-final-sustainability:
     runs-on: ubuntu-latest
@@ -256,7 +256,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=model-building-game-ca-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,DEBUG_LOG=true
+            --set-env-vars=APP_NAME=model-building-game-ca-final-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20,DEBUG_LOG=true
 
   # Sustainability Bias Detective deployments
   deploy-bias-detective-en-sustainability:
@@ -285,7 +285,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=bias-detective-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=bias-detective-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-bias-detective-ca-sustainability:
     runs-on: ubuntu-latest
@@ -313,7 +313,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=bias-detective-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=bias-detective-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-bias-detective-es-sustainability:
     runs-on: ubuntu-latest
@@ -341,7 +341,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=bias-detective-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=bias-detective-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   # Sustainability Fairness Fixer deployments
   deploy-fairness-fixer-en-sustainability:
@@ -370,7 +370,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=fairness-fixer-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=fairness-fixer-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-fairness-fixer-ca-sustainability:
     runs-on: ubuntu-latest
@@ -398,7 +398,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=fairness-fixer-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=fairness-fixer-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-fairness-fixer-es-sustainability:
     runs-on: ubuntu-latest
@@ -426,7 +426,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=fairness-fixer-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=fairness-fixer-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   # Sustainability Upgrade deployments (renamed from justice-equity-upgrade)
   deploy-sustainability-upgrade-en:
@@ -455,7 +455,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=sustainability-upgrade-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=sustainability-upgrade-en,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-sustainability-upgrade-ca:
     runs-on: ubuntu-latest
@@ -483,7 +483,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=sustainability-upgrade-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=sustainability-upgrade-ca,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-sustainability-upgrade-es:
     runs-on: ubuntu-latest
@@ -511,7 +511,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=sustainability-upgrade-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=sustainability-upgrade-es,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   # Sustainability Moral Compass Challenge deployments
   deploy-moral-compass-en-sustainability:
@@ -540,7 +540,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=moral-compass-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=moral-compass-en-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-moral-compass-es-sustainability:
     runs-on: ubuntu-latest
@@ -568,7 +568,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=moral-compass-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=moral-compass-es-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   deploy-moral-compass-ca-sustainability:
     runs-on: ubuntu-latest
@@ -596,7 +596,7 @@ jobs:
             --min-instances=1
             --max-instances=150
             --timeout=3000
-            --set-env-vars=APP_NAME=moral-compass-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1
+            --set-env-vars=APP_NAME=moral-compass-ca-sustainability,GRADIO_SERVER_NAME=0.0.0.0,GRADIO_ANALYTICS_ENABLED=False,GRADIO_NUM_PORTS=1,GRADIO_DEFAULT_CONCURRENCY_LIMIT=20
 
   # ------------------------------------------------------------
   # Collect and publish all deployed service URLs

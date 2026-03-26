@@ -1,0 +1,122 @@
+name: Update GRADIO_DEFAULT_CONCURRENCY_LIMIT on all services
+
+on:
+  workflow_dispatch:
+    inputs:
+      concurrency_limit:
+        description: "Concurrency limit to set (default: 20)"
+        required: true
+        default: "20"
+      target:
+        description: "Which services to update"
+        required: true
+        type: choice
+        options:
+          - all
+          - sustainability-only
+          - standard-only
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Update all services
+        run: |
+          set -euo pipefail
+          LIMIT="${{ inputs.concurrency_limit }}"
+
+          # Standard apps
+          STANDARD_SERVICES=(
+            judge
+            ai-consequences
+            what-is-ai
+            tutorial
+            ethical-revelation
+            moral-compass-challenge
+            model-building-game-en
+            model-building-game-ca
+            model-building-game-es
+            model-building-game-en-final
+            model-building-game-es-final
+            model-building-game-ca-final
+            bias-detective-en
+            bias-detective-es
+            bias-detective-ca
+            fairness-fixer-en
+            fairness-fixer-es
+            fairness-fixer-ca
+            justice-equity-upgrade-en
+            justice-equity-upgrade-es
+            justice-equity-upgrade-ca
+          )
+
+          # Sustainability apps
+          SUSTAINABILITY_SERVICES=(
+            model-building-game-en-sustainability
+            model-building-game-ca-sustainability
+            model-building-game-es-sustainability
+            model-building-game-en-final-sustainability
+            model-building-game-es-final-sustainability
+            model-building-game-ca-final-sustainability
+            bias-detective-en-sustainability
+            bias-detective-ca-sustainability
+            bias-detective-es-sustainability
+            fairness-fixer-en-sustainability
+            fairness-fixer-ca-sustainability
+            fairness-fixer-es-sustainability
+            sustainability-upgrade-en
+            sustainability-upgrade-ca
+            sustainability-upgrade-es
+            moral-compass-en-sustainability
+            moral-compass-es-sustainability
+            moral-compass-ca-sustainability
+          )
+
+          TARGET="${{ inputs.target }}"
+          if [ "${TARGET}" = "sustainability-only" ]; then
+            SERVICES=("${SUSTAINABILITY_SERVICES[@]}")
+          elif [ "${TARGET}" = "standard-only" ]; then
+            SERVICES=("${STANDARD_SERVICES[@]}")
+          else
+            SERVICES=("${STANDARD_SERVICES[@]}" "${SUSTAINABILITY_SERVICES[@]}")
+          fi
+
+          FAILED=()
+          UPDATED=0
+
+          echo "Target: ${TARGET} (${#SERVICES[@]} services)"
+          echo ""
+
+          for SVC in "${SERVICES[@]}"; do
+            echo "--- Updating ${SVC} ---"
+            if gcloud run services update "${SVC}" \
+              --update-env-vars="GRADIO_DEFAULT_CONCURRENCY_LIMIT=${LIMIT}" \
+              --region="${REGION}" \
+              --project="${PROJECT_ID}" 2>&1; then
+              echo "✅ ${SVC}"
+              UPDATED=$((UPDATED + 1))
+            else
+              echo "❌ ${SVC} failed (may not exist)"
+              FAILED+=("${SVC}")
+            fi
+          done
+
+          echo ""
+          echo "=== Summary ==="
+          echo "Updated ${UPDATED} / ${#SERVICES[@]} services to GRADIO_DEFAULT_CONCURRENCY_LIMIT=${LIMIT}"
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo "Failed: ${FAILED[*]}"
+            echo "Note: failures may be expected if some services are not deployed"
+          fi
