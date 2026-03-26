@@ -3,13 +3,6 @@ name: Download Cloud Run Error Logs
 on:
   workflow_dispatch:
     inputs:
-      project:
-        description: "GCP project (moral-compass-apps or sustainability-apps)"
-        required: true
-        type: choice
-        options:
-          - moral-compass-apps
-          - sustainability-apps
       service:
         description: "Service name (e.g. what-is-ai, fairness-fixer-es-sustainability) or 'all' for all services"
         required: false
@@ -28,6 +21,7 @@ on:
           - DEFAULT
 
 env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   REGION: us-central1
 
 jobs:
@@ -46,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          PROJECT="${{ inputs.project }}"
+          PROJECT="${{ env.PROJECT_ID }}"
           SERVICE="${{ inputs.service }}"
           HOURS="${{ inputs.hours }}"
           SEVERITY="${{ inputs.severity }}"
@@ -124,6 +118,6 @@ jobs:
       - name: Upload log artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cloudrun-error-logs-${{ inputs.project }}-${{ github.run_number }}
+          name: cloudrun-error-logs-${{ github.run_number }}
           path: logs/
           retention-days: 7
