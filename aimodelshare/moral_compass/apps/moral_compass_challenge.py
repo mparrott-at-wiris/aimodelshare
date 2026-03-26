@@ -918,7 +918,7 @@ def create_moral_compass_challenge_app(theme_primary_hue: str = "indigo") -> "gr
                 *static_content
             ]
 
-        demo.load(fn=initial_load, inputs=None, outputs=update_targets)
+        demo.load(fn=initial_load, inputs=None, outputs=update_targets, js="() => { try { window.parent.postMessage('app-ready', '*'); } catch(e) {} }")
 
         # --- Navigation ---
         def _nav_generator(target):

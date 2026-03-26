@@ -149,7 +149,6 @@ def reset_user_progress(username, token, team_name, acc):
     client = MoralcompassApiClient(api_base_url=DEFAULT_API_URL, auth_token=token)
     print(f"🔄 Resetting progress for {username}...")
     client.update_moral_compass(table_id=TABLE_ID, username=username, team_name=team_name, metrics={"accuracy": acc}, tasks_completed=0, total_tasks=TOTAL_COURSE_TASKS, primary_metric="accuracy", completed_task_ids=[])
-    time.sleep(1.0)
     return []
 
 # --- 5. CONTENT MODULES ---
@@ -2334,14 +2333,15 @@ def create_bias_detective_part2_app(theme_primary_hue: str = "indigo"):
 
                 if not user_stats or (team != "Team-Unassigned"):
                     client.update_moral_compass(table_id=TABLE_ID, username=user, team_name=team, metrics={"accuracy": acc}, tasks_completed=len(fetched_tasks), total_tasks=TOTAL_COURSE_TASKS, primary_metric="accuracy", completed_task_ids=fetched_tasks)
-                    time.sleep(1.0)
 
                 data, _ = ensure_table_and_get_data(user, token, team, fetched_tasks)
                 return (user, token, team, False, render_top_dashboard(data, 0), render_leaderboard_card(data, user, team), acc, fetched_tasks, gr.update(visible=False), gr.update(visible=True))
 
             return (None, None, None, False, "<div class='hint-box'>⚠️ Auth Failed</div>", "", 0.0, [], gr.update(visible=False), gr.update(visible=True))
 
-        demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, loader_col, main_app_col])
+        demo.load(handle_load, None, [username_state, token_state, team_state, module0_done, out_top, leaderboard_html, accuracy_state, task_list_state, loader_col, main_app_col],
+            js="() => { try { window.parent.postMessage('app-ready', '*'); } catch(e) {} }",
+)
 
         # --- JAVASCRIPT HELPER FOR NAVIGATION ---
         def nav_js(target_id: str, message: str) -> str:

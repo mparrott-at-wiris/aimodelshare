@@ -767,7 +767,7 @@ def create_judge_app(theme_primary_hue: str = "indigo") -> "gr.Blocks":
             return get_cached_ui_updates(lang)
 
         # Trigger update on page load
-        demo.load(update_language, inputs=None, outputs=update_targets)
+        demo.load(update_language, inputs=None, outputs=update_targets, js="() => { try { window.parent.postMessage('app-ready', '*'); } catch(e) {} }")
 
         # -------------------------------------------------------------------------
         # NAVIGATION GENERATORS

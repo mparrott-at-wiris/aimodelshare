@@ -3626,7 +3626,9 @@ def create_model_building_game_es_final_app(theme_primary_hue: str = "indigo") -
                 username_state,  # NEW
                 token_state,     # NEW
                 team_name_state, # NEW
-            ]
+            ],
+            js="() => { try { window.parent.postMessage('app-ready', '*'); } catch(e) {} }",
+
         )
 
     return demo

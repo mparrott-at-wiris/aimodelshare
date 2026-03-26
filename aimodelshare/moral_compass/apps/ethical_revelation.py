@@ -790,7 +790,7 @@ def create_ethical_revelation_app(theme_primary_hue: str = "indigo") -> "gr.Bloc
             static_updates = get_cached_static_content(lang)
             return [gr.update(visible=False), gr.update(visible=True), gr.update(value=stats_html), f"<h1 style='text-align:center;'>{t(lang, 'title')}</h1>", f"<div style='text-align:center; padding:80px 0;'><h2>{t(lang, 'loading_personal')}</h2></div>"] + static_updates
 
-        demo.load(fn=initial_load, inputs=None, outputs=update_targets)
+        demo.load(fn=initial_load, inputs=None, outputs=update_targets, js="() => { try { window.parent.postMessage('app-ready', '*'); } catch(e) {} }")
 
         def create_nav_generator(current_step, next_step):
             def navigate():

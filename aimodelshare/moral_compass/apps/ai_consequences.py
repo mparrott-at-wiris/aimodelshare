@@ -564,7 +564,9 @@ def create_ai_consequences_app(theme_primary_hue: str = "indigo") -> "gr.Blocks"
             s3_title, s3_case_html, s3_reveal_btn, s3_next,
             s4_title, s4_intro, s4_slider, s4_next,
             s5_title, s5_content, s5_restart
-        ])
+        ],
+            js="() => { try { window.parent.postMessage('app-ready', '*'); } catch(e) {} }",
+)
 
     return demo
 

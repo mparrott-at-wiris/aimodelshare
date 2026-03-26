@@ -806,7 +806,9 @@ def create_justice_equity_upgrade_ca_app(theme_primary_hue: str = "indigo"):
                 main_app_col, 
                 dash_output, 
                 lb_output
-            ]
+            ],
+            js="() => { try { window.parent.postMessage('app-ready', '*'); } catch(e) {} }",
+
         )
 
     return demo
