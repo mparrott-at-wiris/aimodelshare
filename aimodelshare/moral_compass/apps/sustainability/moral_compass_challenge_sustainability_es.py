@@ -1575,6 +1575,7 @@ def create_moral_compass_challenge_sustainability_es_app(theme_primary_hue: str 
                 inject_js_html,
                 loader_col, main_app_col,
             ],
+            js="() => { try { window.parent.postMessage('app-ready', '*'); } catch(e) {} }",
         )
 
         # --- JAVASCRIPT HELPER ---

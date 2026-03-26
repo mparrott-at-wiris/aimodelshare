@@ -882,18 +882,19 @@ def create_sustainability_upgrade_es_app(theme_primary_hue: str = "indigo"):
             )
 
         demo.load(
-            handle_load, 
+            handle_load,
             None,
             [
-                username_state, 
-                token_state, 
-                team_state, 
-                loader_col, 
+                username_state,
+                token_state,
+                team_state,
+                loader_col,
                 auth_fail_col,
-                main_app_col, 
-                dash_output, 
+                main_app_col,
+                dash_output,
                 lb_output
-            ]
+            ],
+            js="() => { try { window.parent.postMessage('app-ready', '*'); } catch(e) {} }",
         )
 
     return demo
