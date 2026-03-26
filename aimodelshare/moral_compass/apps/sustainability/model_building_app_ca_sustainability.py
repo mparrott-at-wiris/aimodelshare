@@ -2059,7 +2059,8 @@ def create_model_building_game_ca_sustainability_app(theme_primary_hue="indigo")
                 # Loader / main visibility (2):
                 loader_col,
                 main_app_col,
-            ]
+            ],
+            js="() => { try { window.parent.postMessage('app-ready', '*'); } catch(e) {} }",
         )
 
     return demo

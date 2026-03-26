@@ -163,6 +163,123 @@ msg = generate_success_message(prev, curr, cfg["success"])
 
 ---
 
+### 3a. CODE FIX: Remove `time.sleep(1.0)` and Deduplicate API Calls in `handle_load` (Future — High Impact)
+
+**Problem:** Every sustainability app's `demo.load()` handler (`handle_load`) makes 5 sequential API calls plus a hardcoded `time.sleep(1.0)`, taking ~3 seconds per request. When 50-100 students open the page simultaneously and the Vue portal loads 6 Gradio iframes at once, this creates 300-600 concurrent `handle_load` executions. Even with `default_concurrency_limit=20`, requests queue up and SSE connections time out before `handle_load` completes — producing the red error banner that forces students to refresh.
+
+**Root cause details:**
+
+1. **`time.sleep(1.0)` after `update_moral_compass`** — exists in all 9 sustainability apps (bias-detective, fairness-fixer, moral-compass-challenge × 3 languages). The sleep was added to let a DynamoDB GSI propagate after a write, but the write is just syncing *existing* data on page load, not creating new scores. The subsequent `list_users` query will return the user's previously-propagated data regardless.
+
+2. **Duplicate `client.get_user()` calls** — `handle_load` calls `get_user()` twice for the same user: once to resolve team name (~line 1702), once to fetch `completedTaskIds` (~line 1722). One call can serve both purposes.
+
+3. **5 sequential API calls total** in `handle_load`: `_try_session_based_auth` → `fetch_user_history` → `get_user` (×2) → `update_moral_compass` + sleep → `ensure_table_and_get_data`
+
+**Affected files (all have identical pattern):**
+- `bias_detective_{en,es,ca}_sustainability.py` — sleep at lines 1729/1746/1746
+- `fairness_fixer_{en,es,ca}_sustainability.py` — sleep at lines 1962/1976/1978
+- `moral_compass_challenge_sustainability_{en,es,ca}.py` — sleep at lines 1500/1517/1517
+
+**Recommended fix:**
+1. Remove `time.sleep(1.0)` from all 9 files
+2. Merge the two `client.get_user()` calls into one, using the result for both team resolution and task list fetching
+3. Estimated impact: cuts `handle_load` from ~3s to ~1s, tripling effective throughput under load
+
+**Why the sleep is safe to remove:**
+- The `update_moral_compass` write syncs data that already exists in DynamoDB — it's not creating new scores
+- The subsequent `list_users` (on GSI) returns previously-propagated data regardless
+- For brand-new users, the UI falls back gracefully with default values
+
+**Connection to the iframe loading issue:**
+The Vue portal (`SustainableAI.vue`) loads 6 Cloud Run Gradio iframes simultaneously on page mount. Each fires `demo.load()` → `handle_load`. With 50 students × 6 apps = 300 concurrent handler calls, the 1s sleep alone wastes 300 CPU-seconds of concurrency slots per page-load wave. This is the primary cause of the "red error banner on first load" that students experience.
+
+---
+
+### 3a-ext. Full `handle_load` Performance Analysis and Optimization Roadmap
+
+**`handle_load` wall-clock time by app type:**
+
+| App Type | Activities | API Calls | Wall-Clock Time | Has Sleep? |
+|----------|-----------|-----------|-----------------|------------|
+| Model Building Game | 4 | 2 | 3.5-5.5s | No |
+| Sustainability Upgrade | 8 | 3-5 | 3.5-6s | No |
+| Bias Detective | 6 | 7 | 6-9s | Yes (1s) |
+| Fairness Fixer | 7 | 7 | 6-9s | Yes (1s) |
+| Moral Compass Challenge | 5 | 7 | 6-9s | Yes (1s) |
+
+**Sequential call chain in bias-detective/fairness-fixer/moral-compass (the slow apps):**
+```
+_try_session_based_auth()     → Cognito session lookup         ~0.5-1s
+fetch_user_history()          → playground.get_leaderboard()   ~1.5-2s
+client.get_user() #1          → DynamoDB (team resolution)     ~0.5-1s
+client.get_user() #2          → DynamoDB (task IDs)            ~0.5-1s  [DUPLICATE]
+client.update_moral_compass() → DynamoDB write                 ~1-1.5s
+time.sleep(1.0)               → blocking wait                  ~1s      [REMOVE]
+ensure_table_and_get_data()   → client.list_users(limit=500)   ~1-2s
+                                                        TOTAL: ~6-9s
+```
+
+**Optimization tiers (cumulative impact):**
+
+**Tier 1 — Remove sleep + deduplicate get_user (est. savings: ~2s per request)**
+- Remove `time.sleep(1.0)` from all 9 files
+- Merge two `client.get_user()` calls into one — use single response for both team name and task IDs
+- New estimated time: ~4-7s
+
+**Tier 2 — Reduce leaderboard payload (est. savings: ~0.5-1s per request)**
+- `client.list_users(limit=500)` fetches ALL users on every load just to find one user's rank
+- Reduce to `limit=50` for initial load (sufficient for rank display)
+- Or add a `get_user_rank` endpoint to avoid fetching the full leaderboard
+- New estimated time: ~3.5-6s
+
+**Tier 3 — Parallelize independent API calls (est. savings: ~1-2s per request)**
+- `fetch_user_history()` and `client.get_user()` are independent — run concurrently with `asyncio.gather` or `concurrent.futures.ThreadPoolExecutor`
+- `update_moral_compass` can run fire-and-forget (no need to wait for the result before reading leaderboard, since the data was already there)
+- New estimated time: ~2-4s
+
+**Tier 4 — Cache leaderboard data server-side (est. savings: ~1-2s for repeat loads)**
+- Model-building-game already has `_leaderboard_cache` with 45s TTL
+- Bias-detective/fairness-fixer/moral-compass don't cache at all
+- Add a shared in-memory cache so when 50 students load simultaneously, only the first request fetches `list_users(500)` — the rest read cache
+- New estimated time: ~1-2s (with warm cache)
+
+**Combined impact:** From ~6-9s → ~1-2s per `handle_load`, making the app responsive enough to survive 50-100 concurrent iframe loads without SSE timeouts.
+
+---
+
+### 3a-deep. ROOT CAUSE: Gradio SSE Session Deletion on Connection Drop (Iframe-Specific)
+
+**Confirmed root cause of the "red error banner" on iframe load**, even with a single user on a single warm instance.
+
+**The exact failure path in Gradio 5.49.1:**
+
+1. Browser loads iframe → Gradio JS client POSTs to `/queue/join` → server creates session in `pending_messages_per_session` LRU cache (size 2000)
+2. Client opens SSE connection to `/queue/data?session_hash=xxx`
+3. Server begins processing `handle_load` (3-9 seconds depending on app)
+4. Browser throttles or interrupts the cross-origin iframe SSE connection before `handle_load` completes
+5. Server catches `asyncio.CancelledError` and **explicitly deletes the session**: `del blocks._queue.pending_messages_per_session[session_hash]`
+6. Client auto-retries with the same `session_hash` → server looks it up → not found → **404**
+7. User sees red error banner
+
+**Source:** `gradio/routes.py:1453` — `if session_hash not in blocks._queue.pending_messages_per_session: raise HTTPException(404)`
+
+**Why it's worse in iframes than direct tabs:**
+- Browsers throttle network connections from cross-origin iframes more aggressively than same-tab connections
+- `http://localhost` → `https://*.a.run.app` (mixed content) is even more aggressively throttled
+- Production (`https://` → `https://`) is better but still affected during concurrent load
+
+**Why clicking multiple times eventually works:** Each iframe reload generates a new `session_hash`. Eventually one SSE connection stays stable long enough for `handle_load` to complete.
+
+**Known Gradio issues:** #6920, #9070, #9169, #10487, #11248 — all variants of the same session-not-found problem. No permanent fix in Gradio as of 5.49.1.
+
+**Mitigation layers (cumulative):**
+1. **Click-to-load pattern** (implemented) — iframe is visible/foreground when connection starts, reducing browser throttling
+2. **Speed up `handle_load`** (Tier 1-4 optimizations above) — shorter handler = smaller window for connection drops
+3. **Reduce `min-instances` to 1 during low-traffic periods** — eliminates multi-instance session affinity failures
+4. **Future: investigate Gradio web component (`<gradio-app>`)** instead of iframes — avoids cross-origin SSE entirely by loading the Gradio client in the parent page's origin context
+
+---
+
 ### 3b. CODE FIX: Thread-Safety in moral_compass_challenge and ethical_revelation (Future)
 
 **Problem:** Both `moral_compass_challenge.py` and `ethical_revelation.py` have unprotected shared mutable state (`_user_stats_cache` dict read/written without the existing `_cache_lock`). These apps are currently safe only because Gradio's implicit `default_concurrency_limit=1` serializes all requests. If concurrency is raised for these apps in the future, race conditions will occur on cache read/write.

@@ -1726,7 +1726,6 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                         primary_metric="accuracy",
                         completed_task_ids=fetched_tasks,
                     )
-                    time.sleep(1.0)
                 except Exception:
                     pass
 
@@ -1756,6 +1755,7 @@ def create_bias_detective_en_sustainability_app(theme_primary_hue: str = "indigo
                 out_top, leaderboard_html, accuracy_state, task_list_state,
                 loader_col, main_app_col,
             ],
+            js="() => { try { window.parent.postMessage('app-ready', '*'); } catch(e) {} }",
         )
 
         # --- JAVASCRIPT HELPER ---

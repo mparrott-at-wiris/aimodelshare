@@ -3921,7 +3921,8 @@ def create_model_building_game_ca_final_sustainability_app(theme_primary_hue: st
                 username_state,  # NEW
                 token_state,     # NEW
                 team_name_state, # NEW
-            ]
+            ],
+            js="() => { try { window.parent.postMessage('app-ready', '*'); } catch(e) {} }",
         )
 
     return demo
