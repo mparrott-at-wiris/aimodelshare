@@ -1,0 +1,169 @@
+name: Update min-instances on all services
+
+on:
+  workflow_dispatch:
+    inputs:
+      min_instances:
+        description: "Min instances to set (0 = scale to zero when idle)"
+        required: true
+        default: "0"
+      target:
+        description: "Which services to update"
+        required: true
+        type: choice
+        options:
+          - all
+          - sustainability-only
+          - standard-only
+      dry_run:
+        description: "Only report current min-instances; change nothing"
+        required: true
+        type: boolean
+        default: true
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Update min-instances
+        run: |
+          set -euo pipefail
+          MIN="${{ inputs.min_instances }}"
+          DRY_RUN="${{ inputs.dry_run }}"
+
+          # Standard apps (deploy_gradio_apps.yml + deploy_single_apps.yml)
+          STANDARD_SERVICES=(
+            judge
+            ai-consequences
+            what-is-ai
+            tutorial
+            ethical-revelation
+            moral-compass-challenge
+            model-building-game
+            model-building-game-en
+            model-building-game-ca
+            model-building-game-es
+            model-building-game-en-final
+            model-building-game-es-final
+            model-building-game-ca-final
+            bias-detective-en
+            bias-detective-es
+            bias-detective-ca
+            fairness-fixer-en
+            fairness-fixer-es
+            fairness-fixer-ca
+            justice-equity-upgrade-en
+            justice-equity-upgrade-es
+            justice-equity-upgrade-ca
+          )
+
+          # Sustainability apps (deploy_gradio_apps_sustainability.yml)
+          SUSTAINABILITY_SERVICES=(
+            model-building-game-en-sustainability
+            model-building-game-ca-sustainability
+            model-building-game-es-sustainability
+            model-building-game-en-final-sustainability
+            model-building-game-es-final-sustainability
+            model-building-game-ca-final-sustainability
+            bias-detective-en-sustainability
+            bias-detective-ca-sustainability
+            bias-detective-es-sustainability
+            fairness-fixer-en-sustainability
+            fairness-fixer-ca-sustainability
+            fairness-fixer-es-sustainability
+            sustainability-upgrade-en
+            sustainability-upgrade-ca
+            sustainability-upgrade-es
+            moral-compass-en-sustainability
+            moral-compass-es-sustainability
+            moral-compass-ca-sustainability
+          )
+
+          TARGET="${{ inputs.target }}"
+          if [ "${TARGET}" = "sustainability-only" ]; then
+            SERVICES=("${SUSTAINABILITY_SERVICES[@]}")
+          elif [ "${TARGET}" = "standard-only" ]; then
+            SERVICES=("${STANDARD_SERVICES[@]}")
+          else
+            SERVICES=("${STANDARD_SERVICES[@]}" "${SUSTAINABILITY_SERVICES[@]}")
+          fi
+
+          if [ "${DRY_RUN}" = "true" ]; then
+            echo "DRY RUN: reporting current min-instances only, nothing will change."
+          fi
+          echo "Target: ${TARGET} (${#SERVICES[@]} services) -> min-instances=${MIN}"
+          echo ""
+
+          FAILED=()
+          UPDATED=0
+          SKIPPED=0
+
+          for SVC in "${SERVICES[@]}"; do
+            # Unset annotation means min-instances=0
+            CURRENT=$(gcloud run services describe "${SVC}" \
+              --region="${REGION}" \
+              --project="${PROJECT_ID}" \
+              --format="value(spec.template.metadata.annotations['autoscaling.knative.dev/minScale'])" \
+              2>/dev/null) || CURRENT="MISSING"
+            if [ "${CURRENT}" = "" ]; then
+              CURRENT=0
+            fi
+
+            if [ "${CURRENT}" = "MISSING" ]; then
+              echo "❌ ${SVC}: could not read current config (not deployed, or no access)"
+              FAILED+=("${SVC}")
+              continue
+            fi
+
+            if [ "${DRY_RUN}" = "true" ]; then
+              if [ "${CURRENT}" = "${MIN}" ]; then
+                echo "   ${SVC}: min-instances=${CURRENT} (already at target)"
+              else
+                echo "→  ${SVC}: min-instances=${CURRENT} would become ${MIN}"
+              fi
+              continue
+            fi
+
+            if [ "${CURRENT}" = "${MIN}" ]; then
+              echo "⏭️  ${SVC}: already min-instances=${MIN}, no new revision needed"
+              SKIPPED=$((SKIPPED + 1))
+              continue
+            fi
+
+            echo "--- Updating ${SVC}: ${CURRENT} -> ${MIN} ---"
+            if gcloud run services update "${SVC}" \
+              --min-instances="${MIN}" \
+              --region="${REGION}" \
+              --project="${PROJECT_ID}" 2>&1; then
+              echo "✅ ${SVC} updated"
+              UPDATED=$((UPDATED + 1))
+            else
+              echo "❌ ${SVC} failed"
+              FAILED+=("${SVC}")
+            fi
+          done
+
+          echo ""
+          echo "=== Summary ==="
+          if [ "${DRY_RUN}" = "true" ]; then
+            echo "Dry run over ${#SERVICES[@]} services; no changes made."
+          else
+            echo "Updated ${UPDATED}, already at target ${SKIPPED}, of ${#SERVICES[@]} services (min-instances=${MIN})"
+          fi
+          if [ ${#FAILED[@]} -gt 0 ]; then
+            echo "Failed: ${FAILED[*]}"
+            echo "Note: failures may be expected if some services are not deployed"
+            exit 1
+          fi
